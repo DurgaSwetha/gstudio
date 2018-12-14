@@ -40,14 +40,14 @@ def resource_list(request, group_id, app_id=None, page_no=1):
 	"""
 	* Renders a list of all 'Resources' available within the database (except eBooks).
 	"""
-
+	print "inside resource_list of e-library "
 	is_video = request.GET.get('is_video', "")
 
 	try:
 		group_id = ObjectId(group_id)
 	except:
 		group_name, group_id = get_group_name_id(group_id)
-
+	# print "group name and id", group_name,group_id
 	if app_id is None:
 		app_id = str(app._id)
 
@@ -96,7 +96,9 @@ def resource_list(request, group_id, app_id=None, page_no=1):
 
 	selfilters = urllib.unquote(request.GET.get('selfilters', ''))
 	if selfilters:
+		print "post fetching filters",selfilters
 		selfilters = json.loads(selfilters)
+		print "post json loads :", selfilters
 		query_dict = get_filter_querydict(selfilters)
 
 	query_dict.append({'attribute_set.educationaluse': {'$ne': 'eBooks'}})
@@ -168,7 +170,7 @@ def resource_list(request, group_id, app_id=None, page_no=1):
 			educationaluse_stats["all"] = files.count()
 		
 
-		# print educationaluse_stats
+		print educationaluse_stats
 		result_paginated_cur = files
 		result_pages = paginator.Paginator(result_paginated_cur, page_no, no_of_objs_pp)
 

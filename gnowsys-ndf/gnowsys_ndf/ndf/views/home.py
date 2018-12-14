@@ -16,7 +16,7 @@ except ImportError:  # old pymongo
     from pymongo.objectid import ObjectId
 
 ''' -- imports from application folders/files -- '''
-from gnowsys_ndf.settings import GAPPS, GSTUDIO_SITE_LANDING_PAGE, GSTUDIO_SITE_NAME, GSTUDIO_SITE_LANDING_TEMPLATE
+from gnowsys_ndf.settings import GAPPS, GSTUDIO_SITE_LANDING_PAGE, GSTUDIO_SITE_NAME, GSTUDIO_SITE_LANDING_TEMPLATE, GSTUDIO_OER_GROUPS
 from gnowsys_ndf.ndf.models import GSystemType, Node
 from gnowsys_ndf.ndf.models import node_collection
 
@@ -24,9 +24,13 @@ from gnowsys_ndf.ndf.models import node_collection
 #   V I E W S   D E F I N E D   F O R   H O M E   #
 ###################################################
 
+
 @get_execution_time
 def homepage(request, group_id):
-    
+    print "Entered home.py"
+    #print request,"\n"
+    print request.user,"\n"
+    print request.author
     if request.user.is_authenticated():
         # auth_gst = node_collection.one({'_type': u'GSystemType', 'name': u'Author'})
         # if auth_obj:
@@ -74,8 +78,9 @@ def homepage(request, group_id):
             home_group_obj.author_set.append(request.user.id)
             home_group_obj.save(groupid=group_id)
         '''
-
+        print GSTUDIO_SITE_LANDING_PAGE, request.user.id
         if GSTUDIO_SITE_LANDING_PAGE == "home":
+            print "before reverse"
             return HttpResponseRedirect( reverse('landing_page') )
 
         else:
@@ -93,6 +98,10 @@ def landing_page(request):
     '''
     Method to render landing page after checking variables in local_settings/settings file.
     '''
+    group_id = node_collection.one({'$and':[{'_type': u'Group'}, {'name': u'home'}]})._id
+    
+    print GSTUDIO_SITE_NAME, GSTUDIO_SITE_LANDING_PAGE, GSTUDIO_SITE_LANDING_TEMPLATE
+
     if (GSTUDIO_SITE_LANDING_PAGE == "home") and (GSTUDIO_SITE_NAME == "NROER"):
         return render_to_response(
                                 "ndf/landing_page_nroer.html",
@@ -105,23 +114,28 @@ def landing_page(request):
 
     elif GSTUDIO_SITE_LANDING_TEMPLATE:
         if GSTUDIO_SITE_NAME == "clix":
+            #print request.COOKIES
+            
             if request.META['QUERY_STRING']  == "True":
                 return render_to_response(
                                         GSTUDIO_SITE_LANDING_TEMPLATE,
                                         {
-                                            "group_id": "home", 'groupid':"home",
+                                            "group_id": group_id, 'groupid':"home",
                                             'title': 'CLIx'
                                         },
                                         context_instance=RequestContext(request)
                                     )
-            elif request.user.id:
-                return HttpResponseRedirect( reverse('my_desk', kwargs={"group_id": request.user.id}) )        
+            # elif request.user.id:
+            #     print "post loggin in"
+            #     return HttpResponseRedirect( reverse('my_desk', kwargs={"group_id": request.user.id}) )        
             else:
-        
+                #print "Not yet logged in"
+                group_id = node_collection.one({'_type': "Group", 'name': "home"})._id
+                print request.path
                 return render_to_response(
                                         GSTUDIO_SITE_LANDING_TEMPLATE,
                                         {
-                                            "group_id": "home", 'groupid':"home",
+                                            "group_id": group_id, 'groupid':"home",
                                             'title': 'CLIx'
                                         },
                                         context_instance=RequestContext(request)

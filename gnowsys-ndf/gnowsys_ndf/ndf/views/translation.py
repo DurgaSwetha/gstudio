@@ -182,6 +182,7 @@ def get_lang_node(node_id,lang):
     for each in rel_value['grel_node']:
         if each.language[0] ==  get_language_tuple(lang)[0]:
             trans_node = each
+            print "in get_lang_node", trans_node._id, "in language", each.language[0]
             return trans_node
 
 def get_trans_node_list(node_list,lang):
@@ -197,6 +198,26 @@ def get_trans_node_list(node_list,lang):
             # trans_node_list.append({ObjectId(node._id): {"name": node.name, "basenodeid":ObjectId(node._id)}})
     if trans_node_list:
         return trans_node_list
+
+
+def get_group_content(node_id,lang="en"):
+
+    print "inside group content",node_id
+    grp_dict = {}
+    node_obj = Node.get_node_by_id(node_id)
+    if node_obj:
+        trans_grp = get_lang_node(node_id,lang)
+        if trans_grp:
+            grp_dict['label'] = trans_grp.name
+            grp_dict['altlabel'] = trans_grp.altnames
+            grp_dict['content'] = trans_grp.content
+        else:
+            grp_dict['label'] = node_obj.name
+            grp_dict['altlabel'] = node_obj.altnames
+            grp_dict['content'] = node_obj.content
+        
+    return grp_dict
+
 
 def get_course_content_hierarchy(unit_group_obj,lang="en"):
     '''
@@ -254,6 +275,7 @@ def get_course_content_hierarchy(unit_group_obj,lang="en"):
                         # activity_dict['label'] = trans_act_name.name or activity.name  
                         if trans_act_name:
                             activity_dict['label'] = trans_act_name.altnames or trans_act_name.name
+                            print "in side activity loop", trans_act_name._id, "in language", lang
                             # activity_dict['label'] = trans_act_name.name
                         else:
                             # activity_dict['label'] = activity.name

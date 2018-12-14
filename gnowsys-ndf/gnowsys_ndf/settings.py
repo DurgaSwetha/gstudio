@@ -14,7 +14,7 @@ import djcelery
 # from gnowsys_ndf.ndf.utils import (is_dir_exists, ensure_dir, get_current_dbs_path,
 #     move_file_or_dirctory)
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 TEMPLATE_DEBUG = DEBUG
@@ -397,7 +397,7 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/static'
+STATIC_ROOT = '/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -603,7 +603,7 @@ GSTUDIO_WORKING_GAPPS = [
 ]
 
 GSTUDIO_REGISTRATION = True
-
+GSTUDIO_OER_GROUPS = ['Mathematics','Science','English']
 GSTUDIO_SECOND_LEVEL_HEADER = True
 GSTUDIO_MY_GROUPS_IN_HEADER = True
 GSTUDIO_MY_COURSES_IN_HEADER = False

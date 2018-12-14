@@ -135,7 +135,7 @@ def get_site_variables():
 	site_var['INSTITUTE_ID'] = GSTUDIO_INSTITUTE_ID
 	site_var['HEADER_LANGUAGES'] = HEADER_LANGUAGES
 	site_var['GSTUDIO_DOC_FOOTER_TEXT'] = GSTUDIO_DOC_FOOTER_TEXT
-
+	site_var['GSTUDIO_OER_GROUPS'] = GSTUDIO_OER_GROUPS
 	cache.set('site_var', site_var, 60 * 30)
 
 	return  site_var
@@ -324,7 +324,7 @@ def get_node_ratings(request,node_id):
 		counter_var = 0
 		avg_rating = 0.0
 		rating_data = {}
-		for each in node_obj.rating:
+		for each in node_obj:
 			if each['user_id'] == user.id:
 				rating_by_user = each['score']
 			if each['user_id'] == 0:
@@ -497,6 +497,15 @@ def get_group_object(group_id = None):
 		group_object = node_collection.one({'$and':[{'_type':u'Group'},{'name':u'home'}]})
 		return group_object
 
+
+@get_execution_time
+@register.assignment_tag
+def get_oer_groups():
+   print "inside get_oer_groups"
+   gst_group = node_collection.one({'_type': "GSystemType", 'name': "Group"})
+   oergroups_cur = node_collection.find({'member_of':gst_group._id, 'name':{'$in':GSTUDIO_OER_GROUPS}}) .sort('last_update',-1)
+   print "oer_groups_list", oergroups_cur.count()
+   return list(oergroups_cur)  
 
 @get_execution_time
 @register.assignment_tag
@@ -2357,12 +2366,14 @@ def check_is_gstaff(groupid, user):
   True -- If user is one of them, from the above specified list of categories.
   False -- If above criteria is not met (doesn't belongs to any of the category, mentioned above)!
   """
-
+  print "inside check_is_gstaff"
   group_name, group_id = Group.get_group_name_id(groupid)
+  print group_name
   cache_key = 'is_gstaff' + str(group_id) + str(user.id)
 
   if cache_key in cache:
-    return cache.get(cache_key)
+  	print "inside cache"
+  	return cache.get(cache_key)
 
   groupid = groupid if groupid else 'home'
 
@@ -4154,9 +4165,11 @@ def get_node_by_member_of_name(group_id, member_of_name):
 @get_execution_time
 @register.assignment_tag
 def cast_to_node(node_or_node_list):
-	# print "\nInput type: ", type(node_or_node_list)
+	print "cast_to_node"
+	print "\nInput type: ", type(node_or_node_list)
 	if isinstance(node_or_node_list, list):
 		return map(Node,node_or_node_list)
+		print node_or_node_list
 	else:
 		return Node(node_or_node_list)
 

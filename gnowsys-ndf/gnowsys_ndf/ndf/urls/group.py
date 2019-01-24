@@ -4,6 +4,10 @@ from django.views.generic import TemplateView
 
 urlpatterns = patterns('gnowsys_ndf.ndf.views.group',
                         url(r'^[/]$', 'group', name='group'),
+                        url(r'^/(?P<node_id>[\w-]+)/modules/$', 'group_detail', name='group_detail_url'),
+                        url(r'^/(?P<node_id>[\w-]+)/edit/$','group_create_edit' , name='edit_group_page'),
+                        url(r'^/(?P<node_id>[\w-]+)/save_group_page/$', 'save_group_page', name='save_group_page'),
+                        url(r'^/inline_edit_grp/$', 'inline_edit_grp', name='inline_edit_grp'),
                         url(r'^/(?P<app_id>[\w-]+)$', 'group', name='group'),
                         url(r'^/create_group/', GroupCreateEditHandler.as_view(), {'action': 'create'}, name='create_group'),
                         url(r'^/edit_group/', GroupCreateEditHandler.as_view(), {'action': 'edit'}, name='edit_group'),
@@ -18,6 +22,7 @@ urlpatterns = patterns('gnowsys_ndf.ndf.views.group',
                         #url(r'^/(?P<groups_category>[\w-]+)/nroer_groups/?$', 'nroer_groups', name='nroer_groups'),
                         url(r'^/(?P<app_id>[\w-]+)/value/(?P<agency_type>[\w-]+)/?$', 'group', name='groups_by_agency_type'),
                         url(r'^/notification/details','notification_details' , name='notification_details'),
+                        
                     )
 
 urlpatterns += patterns('gnowsys_ndf.ndf.views.ajax_views',

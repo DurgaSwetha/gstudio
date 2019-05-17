@@ -1,9 +1,9 @@
 import bson
 
-from django_mongokit import get_database
+from mongoengine.connection import get_db
 from gnowsys_ndf.ndf.views.utils import reverse_dict_having_listvalues, cast_to_data_type
 
-db = get_database()
+db = get_db()
 
 
 def get_collection_names():

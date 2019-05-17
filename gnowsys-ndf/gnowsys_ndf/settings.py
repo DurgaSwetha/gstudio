@@ -263,20 +263,39 @@ django.conf.locale.LANG_INFO = LANG_INFO
 # Override following variables in local_settings file:
 #
 # SMTP setting for sending mail (Using python default SMTP server)
-EMAIL_USE_TLS = False
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'testing@example.com'
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = '127.0.0.1'
+# EMAIL_PORT = 1025
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST_USER = ''
+# EMAIL_HOST_PASSWORD = ''
+#DEFAULT_FROM_EMAIL = 'testing@example.com'
+
+# Authentication related and Error reporting emails
+# EMAIL_USE_TLS = ""
+# ACCOUNT_ACTIVATION_DAYS = 2
+# #EMAIL_HOST = 'localhost'
+# EMAIL_HOST = 'localhost'
+# #DEFAULT_FROM_EMAIL = 'webmaster@clix.ss.org'
+# DEFAULT_FROM_EMAIL = 'gdswetha@gmail.com'
+# LOGIN_REDIRECT_URL = '/'
+# EMAIL_SUBJECT_PREFIX='[clix-ss-error-reporting]'
+# SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# EMAIL_PORT = ""
+# ADMINS = (
+#     "mrunal4888@gmail.com"
+# )
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 #
 # SMTP setting for sending mail (e.g: gmail SMTP server)
-# EMAIL_USE_TLS = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'yourcompletegmailaddr'
-# EMAIL_HOST_PASSWORD = 'yourpassword'
-#
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'gdswetha@gmail.com'
+EMAIL_HOST_PASSWORD = 'inter15'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # The following email id and password for the email account will be used for sending/receiving SYNCDATA
 SYNCDATA_KEY_PUB = ""
 SYNCDATA_FROM_EMAIL_ID = ""
@@ -337,15 +356,21 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': SQLITE3_DB_PATH,
     },
-    'mongodb': {
-        'ENGINE': 'django_mongokit.mongodb',
-        'NAME': 'studio-dev',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '',
-    },
+    # 'mongodb': {
+    #     'ENGINE': 'django_mongokit.mongodb',
+    #     'NAME': 'studio-dev',
+    #     'USER': '',
+    #     'PASSWORD': '',
+    #     'HOST': '',
+    #     'PORT': '',
+    # },
 }
+MONGODB_DBNAME = 'gstudio-mongodb'
+from mongoengine import connection
+
+connection.connect(
+    db = MONGODB_DBNAME
+    )
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -358,7 +383,7 @@ TIME_ZONE = 'Asia/Kolkata'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'de'
 
-SITE_ID = 1
+SITE_ID = 2
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.

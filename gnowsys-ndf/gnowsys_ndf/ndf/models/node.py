@@ -1,8 +1,8 @@
 from base_imports import *
 from history_manager import HistoryManager
+from models_utils import *
 
-@connection.register
-class Node(DjangoDocument):
+class Node(DynamicDocument):
     '''Everything is a Node.  Other classes should inherit this Node class.
 
     According to the specification of GNOWSYS, all nodes, including
@@ -12,7 +12,7 @@ class Node(DjangoDocument):
     Member of this class must belong to one of the NODE_TYPE_CHOICES.
 
     Some in-built Edge names (Relation types) are defined in this
-    class: type_of, member_of, prior_node, post_node, collection_set,
+    class= type_of, member_of, prior_node, post_node, collection_set,
     group_set.
 
     type_of is used to express generalization of Node. And member_of
@@ -34,167 +34,168 @@ class Node(DjangoDocument):
 
     '''
     objects = models.Manager()
+    collection_name ='Nodes'
+    # _id = ObjectIdField(required=True,unique=True)
+    # structure = {
+    
+    _type= StringField(required = True), # check required= required field, Possible
+                      # values are to be taken only from the list
+                      # NODE_TYPE_CHOICES
+    name= StringField(required = True),
+    altnames= StringField(),
+    plural= StringField(),
+    prior_node= ListField(ObjectIdField()),
+    post_node= ListField(ObjectIdField()),
 
-    collection_name = 'Nodes'
-    structure = {
-        '_type': unicode, # check required: required field, Possible
-                          # values are to be taken only from the list
-                          # NODE_TYPE_CHOICES
-        'name': unicode,
-        'altnames': unicode,
-        'plural': unicode,
-        'prior_node': [ObjectId],
-        'post_node': [ObjectId],
+    # 'language'= unicode,  # previously it was unicode.
+    language= (StringField(), StringField()),  # Tuple are converted into a simple list
+                                           # ref= https=//github.com/namlook/mongokit/wiki/Structure#tuples
 
-        # 'language': unicode,  # previously it was unicode.
-        'language': (basestring, basestring),  # Tuple are converted into a simple list
-                                               # ref: https://github.com/namlook/mongokit/wiki/Structure#tuples
-
-        'type_of': [ObjectId], # check required: only ObjectIDs of GSystemType
-        'member_of': [ObjectId], # check required: only ObjectIDs of
-                                 # GSystemType for GSystems, or only
-                                 # ObjectIDs of MetaTypes for
-                                 # GSystemTypes
-        'access_policy': unicode, # check required: only possible
+    type_of= ListField(ObjectIdField()), # check required= only ObjectIDs of GSystemType
+    member_of= ListField(ObjectIdField()), # check required= only ObjectIDs of
+                             # GSystemType for GSystems, or only
+                             # ObjectIDs of MetaTypes for
+                             # GSystemTypes
+    access_policy= StringField(), # check required= only possible
                                   # values are Public or Private.  Why
                                   # is this unicode?
 
-      	'created_at': datetime.datetime,
-        'created_by': int, # test required: only ids of Users
+    created_at= DateTimeField(),
+    created_by= IntField(required = True), # test required= only ids of Users
 
-        'last_update': datetime.datetime,
-        'modified_by': int, # test required: only ids of Users
+    last_update= DateTimeField(),
+    modified_by= IntField(), # test required= only ids of Users
 
-        'contributors': [int], # test required: set of all ids of
-                               # Users of created_by and modified_by
-                               # fields
-        'location': [dict], # check required: this dict should be a
-                            # valid GeoJason format
-        'content': unicode,
-        'content_org': unicode,
+    contributors= ListField(IntField()), # test required= set of all ids of
+                           # Users of created_by and modified_by
+                           # fields
+    location= ListField(DictField()), # check required= this dict should be a
+                       # valid GeoJason format
+    content= StringField(),
+    content_org= StringField(),
 
-        'group_set': [ObjectId], # check required: should not be
-                                 # empty. For type nodes it should be
-                                 # set to a Factory Group called
-                                 # Administration
-        'collection_set': [ObjectId],  # check required: to exclude
-                                       # parent nodes as children, use
-                                       # MPTT logic
-        'property_order': [],  # Determines the order & grouping in
-                               # which attribute(s)/relation(s) are
-                               # displayed in the form
+    group_set= ListField(ObjectIdField()), # check required= should not be
+                             # empty. For type nodes it should be
+                             # set to a Factory Group called
+                             # Administration
+    collection_set= ListField(ObjectIdField()),  # check required= to exclude
+                                   # parent nodes as children, use
+                                   # MPTT logic
+    property_order= ListField(),  # Determines the order & grouping in
+                           # which attribute(s)/relation(s) are
+                           # displayed in the form
 
-        'start_publication': datetime.datetime,
-        'tags': [unicode],
-        'featured': bool,
-        'url': unicode,
-        'comment_enabled': bool,
-      	'login_required': bool,
-      	# 'password': basestring,
+    start_publication= DateTimeField(),
+    tags= ListField(StringField()),
+    featured= BooleanField(),
+    url= StringField(),
+    comment_enabled= BooleanField(),
+    login_required= BooleanField(),
+    	# 'password'= basestring,
 
-        'status': STATUS_CHOICES_TU,
-        'rating':[{'score':int,
-                  'user_id':int,
-                  'ip_address':basestring}],
-        'snapshot':dict
+    status= StringField(choices = STATUS_CHOICES_TU),
+    rating=ListField(DictField()),
+    snapshot=DictField()
+    # }
+    meta = {
+        
+        'use_dot_notation' : True,
+        'allow_inheritance': True,
+        'indexes' : [
+            {
+                # 1= Compound index
+                'fields': [
+                    ('_type','name')
+                ]
+            }, {
+                # 2= Compound index
+                'fields': [
+                    ('_type','created_by')
+                ]
+            }, {
+                # 3= Single index
+                'fields': [
+                    ('group_set')
+                ]
+            }, {
+                # 4= Single index
+                'fields': [
+                    ('member_of')
+                ]
+            }, {
+                # 5= Single index
+                'fields': [
+                    ('name')
+                ]
+            }, {
+                # 6= Compound index
+                'fields': [
+                    ('created_by','status','access_policy','last_update')
+                ]
+            }, {
+                # 7= Compound index
+                'fields': [
+                    ('created_by', 'status', 'access_policy', 'created_at')
+                ]
+            }, {
+                # 8= Compound index
+                'fields': [
+                    ('created_by','last_update')
+                ]
+            }, {
+                # 9= Compound index
+                'fields': [
+                    ('status','last_update')
+                ]
+            },
+        ]
     }
+    # required_fields = ['name', '_type', 'created_by'] # 'group_set' to be included
+    #                                     # here after the default
+    #                                     # 'Administration' group is
+    #                                     # ready.
+    # default_values = {
+    #                     'name'= u'',
+    #                     'altnames'= u'',
+    #                     'plural'= u'',
+    #                     'prior_node'= [],
+    #                     'post_node'= [],
+    #                     'language'= ('en', 'English'),
+    #                     'type_of'= [],
+    #                     'member_of'= [],
+    #                     'access_policy'= u'PUBLIC',
+    #                     'created_at'= datetime.datetime.now,
+    #                     # 'created_by'= int,
+    #                     'last_update'= datetime.datetime.now,
+    #                     # 'modified_by'= int,
+    #                     # 'contributors'= [],
+    #                     'location'= [],
+    #                     'content'= u'',
+    #                     'content_org'= u'',
+    #                     'group_set'= [],
+    #                     'collection_set'= [],
+    #                     'property_order'= [],
+    #                     # 'start_publication'= datetime.datetime.now,
+    #                     'tags'= [],
+    #                     # 'featured'= True,
+    #                     'url'= u'',
+    #                     # 'comment_enabled'= bool,
+    #                     # 'login_required'= bool,
+    #                     # 'password'= basestring,
+    #                     'status'= u'PUBLISHED',
+    #                     'rating'=[],
+    #                     'snapshot'={}
+    #                 }
 
-    indexes = [
-        {
-            # 1: Compound index
-            'fields': [
-                ('_type', INDEX_ASCENDING), ('name', INDEX_ASCENDING)
-            ]
-        }, {
-            # 2: Compound index
-            'fields': [
-                ('_type', INDEX_ASCENDING), ('created_by', INDEX_ASCENDING)
-            ]
-        }, {
-            # 3: Single index
-            'fields': [
-                ('group_set', INDEX_ASCENDING)
-            ]
-        }, {
-            # 4: Single index
-            'fields': [
-                ('member_of', INDEX_ASCENDING)
-            ]
-        }, {
-            # 5: Single index
-            'fields': [
-                ('name', INDEX_ASCENDING)
-            ]
-        }, {
-            # 6: Compound index
-            'fields': [
-                ('created_by', INDEX_ASCENDING), ('status', INDEX_ASCENDING), \
-                ('access_policy', INDEX_ASCENDING), ('last_update' , INDEX_DESCENDING)
-            ]
-        }, {
-            # 7: Compound index
-            'fields': [
-                ('created_by', INDEX_ASCENDING), ('status', INDEX_ASCENDING), \
-                ('access_policy', INDEX_ASCENDING), ('created_at' , INDEX_DESCENDING)
-            ]
-        }, {
-            # 8: Compound index
-            'fields': [
-                ('created_by', INDEX_ASCENDING), ('last_update' , INDEX_DESCENDING)
-            ]
-        }, {
-            # 9: Compound index
-            'fields': [
-                ('status', INDEX_ASCENDING), ('last_update' , INDEX_DESCENDING)
-            ]
-        },
-    ]
+    # validators = {
+    #     'name'= lambda x= x.strip() not in [None, ''],
+    #     'created_by'= lambda x= isinstance(x, int) and (x != 0),
+    #     'access_policy'= lambda x= x in (list(NODE_ACCESS_POLICY) + [None])
+    # }
 
-    required_fields = ['name', '_type', 'created_by'] # 'group_set' to be included
-                                        # here after the default
-                                        # 'Administration' group is
-                                        # ready.
-    default_values = {
-                        'name': u'',
-                        'altnames': u'',
-                        'plural': u'',
-                        'prior_node': [],
-                        'post_node': [],
-                        'language': ('en', 'English'),
-                        'type_of': [],
-                        'member_of': [],
-                        'access_policy': u'PUBLIC',
-                        'created_at': datetime.datetime.now,
-                        # 'created_by': int,
-                        'last_update': datetime.datetime.now,
-                        # 'modified_by': int,
-                        # 'contributors': [],
-                        'location': [],
-                        'content': u'',
-                        'content_org': u'',
-                        'group_set': [],
-                        'collection_set': [],
-                        'property_order': [],
-                        # 'start_publication': datetime.datetime.now,
-                        'tags': [],
-                        # 'featured': True,
-                        'url': u'',
-                        # 'comment_enabled': bool,
-                        # 'login_required': bool,
-                        # 'password': basestring,
-                        'status': u'PUBLISHED',
-                        'rating':[],
-                        'snapshot':{}
-                    }
+    
 
-    validators = {
-        'name': lambda x: x.strip() not in [None, ''],
-        'created_by': lambda x: isinstance(x, int) and (x != 0),
-        'access_policy': lambda x: x in (list(NODE_ACCESS_POLICY) + [None])
-    }
-
-    use_dot_notation = True
-
+    
 
     def add_in_group_set(self, group_id):
         if group_id not in self.group_set:
@@ -213,6 +214,7 @@ class Node(DjangoDocument):
 
         user_id = kwargs.get('created_by', None)
         # dict to sum both dicts, kwargs and request.POST
+        print "inside fill_node_values of node.py"
         values_dict = {}
         if request:
             if request.POST:
@@ -355,7 +357,7 @@ class Node(DjangoDocument):
 
         if node_obj:
             node_name = node_obj.name
-            node_id = node_obj._id
+            node_id = node_obj.id
 
             # setting cache with ObjectId
             cache_key = node_type + '_name_id' + str(slugify(node_id))
@@ -432,7 +434,6 @@ class Node(DjangoDocument):
         for each_pk in self.contributors:
             contributor_names.append(User.objects.get(pk=each_pk).username)
         user_details['contributors'] = contributor_names
-
         if self.modified_by:
             user_details['modified_by'] = User.objects.get(pk=self.modified_by).username
 
@@ -452,7 +453,7 @@ class Node(DjangoDocument):
         for each_id in self.prior_node:
             i = i + 1
 
-            if each_id != self._id:
+            if each_id != self.id:
                 node_collection_object = node_collection.one({"_id": ObjectId(each_id)})
                 dict_key = i
                 dict_value = node_collection_object
@@ -475,7 +476,7 @@ class Node(DjangoDocument):
         for each_id in self.collection_set:
             i = i + 1
 
-            if each_id != self._id:
+            if each_id != self.id:
                 node_collection_object = node_collection.one({"_id": ObjectId(each_id)})
                 dict_key = i
                 dict_value = node_collection_object
@@ -522,102 +523,103 @@ class Node(DjangoDocument):
     ########## Built-in Functions (Overridden) ##########
 
     def __unicode__(self):
-        return self._id
+        return self.id
 
     def identity(self):
         return self.__unicode__()
 
     def save(self, *args, **kwargs):
-	if "is_changed" in kwargs:
+        print "In save:",self
+        if "is_changed" in kwargs:
             if not kwargs["is_changed"]:
-                #print "\n ", self.name, "(", self._id, ") -- Nothing has changed !\n\n"
+                #print "\n ", self.name, "(", self.id, ") -- Nothing has changed !\n\n"
                 return
 
         is_new = False
 
-        if not "_id" in self:
+        if not "id" in self:
             is_new = True               # It's a new document, hence yet no ID!"
 
             # On save, set "created_at" to current date
             self.created_at = datetime.datetime.today()
 
         self.last_update = datetime.datetime.today()
-
+        print self.last_update
         # Check the fields which are not present in the class
         # structure, whether do they exists in their GSystemType's
         # "attribute_type_set"; If exists, add them to the document
         # Otherwise, throw an error -- " Illegal access: Invalid field
         # found!!! "
 
-        try:
+        # try:
 
-            invalid_struct_fields = list(set(self.structure.keys()) - set(self.keys()))
-            # print '\n invalid_struct_fields: ',invalid_struct_fields
-            if invalid_struct_fields:
-                for each_invalid_field in invalid_struct_fields:
-                    if each_invalid_field in self.structure:
-                        self.structure.pop(each_invalid_field)
-                        # print "=== removed from structure", each_invalid_field, ' : ',
-
-
-            keys_list = self.structure.keys()
-            keys_list.append('_id')
-            invalid_struct_fields_list = list(set(self.keys()) - set(keys_list))
-            # print '\n invalid_struct_fields_list: ',invalid_struct_fields_list
-            if invalid_struct_fields_list:
-                for each_invalid_field in invalid_struct_fields_list:
-                    if each_invalid_field in self:
-                        self.pop(each_invalid_field)
-                        # print "=== removed ", each_invalid_field, ' : ',
+        #     invalid_struct_fields = list(set(self.structure.keys()) - set(self.keys()))
+        #     # print '\n invalid_struct_fields: ',invalid_struct_fields
+        #     if invalid_struct_fields:
+        #         for each_invalid_field in invalid_struct_fields:
+        #             if each_invalid_field in self.structure:
+        #                 self.structure.pop(each_invalid_field)
+        #                 # print "=== removed from structure", each_invalid_field, ' : ',
 
 
-        except Exception as e:
-            print e
-            pass
+        #     keys_list = self.structure.keys()
+        #     keys_list.append('_id')
+        #     invalid_struct_fields_list = list(set(self.keys()) - set(keys_list))
+        #     # print '\n invalid_struct_fields_list: ',invalid_struct_fields_list
+        #     if invalid_struct_fields_list:
+        #         for each_invalid_field in invalid_struct_fields_list:
+        #             if each_invalid_field in self:
+        #                 self.pop(each_invalid_field)
+        #                 # print "=== removed ", each_invalid_field, ' : ',
 
-        invalid_fields = []
 
-        for key, value in self.iteritems():
-            if key == '_id':
-                continue
+        # except Exception as e:
+        #     print e
+        #     pass
 
-            if not (key in self.structure):
-                field_found = False
-                for gst_id in self.member_of:
-                    attribute_set_list = node_collection.one({'_id': gst_id}).attribute_type_set
+        # invalid_fields = []
 
-                    for attribute in attribute_set_list:
-                        if key == attribute['name']:
-                            field_found = True
+        # for key, value in self.iteritems():
+        #     if key == '_id':
+        #         continue
 
-                            # TODO: Check whether type of "value"
-                            # matches with that of
-                            # "attribute['data_type']" Don't continue
-                            # searching from list of remaining
-                            # attributes
-                            break
+        #     if not (key in self.structure):
+        #         field_found = False
+        #         for gst_id in self.member_of:
+        #             attribute_set_list = node_collection.one({'_id': gst_id}).attribute_type_set
 
-                    if field_found:
-                        # Don't continue searching from list of
-                        # remaining gsystem-types
-                        break
+        #             for attribute in attribute_set_list:
+        #                 if key == attribute['name']:
+        #                     field_found = True
 
-                if not field_found:
-                    invalid_fields.append(key)
-                    print "\n Invalid field(", key, ") found!!!\n"
-                    # Throw an error: " Illegal access: Invalid field
-                    # found!!! "
+        #                     # TODO: Check whether type of "value"
+        #                     # matches with that of
+        #                     # "attribute['data_type']" Don't continue
+        #                     # searching from list of remaining
+        #                     # attributes
+        #                     break
 
-        # print "== invalid_fields : ", invalid_fields
-        try:
-            self_keys = self.keys()
-            if invalid_fields:
-                for each_invalid_field in invalid_fields:
-                    if each_invalid_field in self_keys:
-                        self.pop(each_invalid_field)
-        except Exception as e:
-            print "\nError while processing invalid fields: ", e
-            pass
+        #             if field_found:
+        #                 # Don't continue searching from list of
+        #                 # remaining gsystem-types
+        #                 break
+
+        #         if not field_found:
+        #             invalid_fields.append(key)
+        #             print "\n Invalid field(", key, ") found!!!\n"
+        #             # Throw an error: " Illegal access: Invalid field
+        #             # found!!! "
+
+        # # print "== invalid_fields : ", invalid_fields
+        # try:
+        #     self_keys = self.keys()
+        #     if invalid_fields:
+        #         for each_invalid_field in invalid_fields:
+        #             if each_invalid_field in self_keys:
+        #                 self.pop(each_invalid_field)
+        # except Exception as e:
+        #     print "\nError while processing invalid fields: ", e
+        #     pass
 
         # if Add-Buddy feature is enabled:
         #   - Get all user id's of active buddies with currently logged in user.
@@ -628,7 +630,7 @@ class Node(DjangoDocument):
                                                     self.created_by,
                                                     self.last_update or self.created_at
                                                 )
-            # print 'buddy_contributors : ', buddy_contributors
+            # print 'buddy_contributors : ', buddy_contributto_reduce_doc_requirementors
 
             if buddy_contributors:
                 for each_bcontrib in buddy_contributors:
@@ -660,33 +662,37 @@ class Node(DjangoDocument):
         # this document is present or not.  If the id is not present
         # then add that id.If it is present then do not add that id
 
-        old_doc = node_collection.collection.ToReduceDocs.find_one({'required_for':to_reduce_doc_requirement,'doc_id':self._id})
+        old_doc = node_collection.collection.ToReduceDocs.find_one({'required_for':to_reduce_doc_requirement,'doc_id':self.id})
 
-        #print "~~~~~~~~~~~~~~~~~~~~It is not present in the ToReduce() class collection.Message Coming from save() method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",self._id
+        #print "~~~~~~~~~~~~~~~~~~~~It is not present in the ToReduce() class collection.Message Coming from save() method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",self.id
         if  not old_doc:
-            z = node_collection.collection.ToReduceDocs()
-            z.doc_id = self._id
-            z.required_for = to_reduce_doc_requirement
+            z = ToReduceDocs(doc_id=self.id,required_for=to_reduce_doc_requirement)
+            # z.doc_id = self.id
+            # z.required_for = to_reduce_doc_requirement
             z.save()
 
         #If you create/edit anything then this code shall add it in the URL
 
         history_manager = HistoryManager()
         rcs_obj = RCS()
-
+        print "in history_manager"
         if is_new:
             # Create history-version-file
+            print "in if",history_manager
             try:
+                print "self:",self._fields
                 if history_manager.create_or_replace_json_file(self):
                     fp = history_manager.get_file_path(self)
+                    print "file path:",fp
                     user_list = User.objects.filter(pk=self.created_by)
                     user = user_list[0].username if user_list else 'user'
                     # user = User.objects.get(pk=self.created_by).username
-                    message = "This document (" + self.name + ") is created by " + user + " on " + self.created_at.strftime("%d %B %Y")
-                    rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
+                    if self.created_at:
+                        message = "This document (" + self.name + ") is created by " + user + " on " + self.created_at.strftime("%d %B %Y")
+                        rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
             except Exception as err:
-                print "\n DocumentError: This document (", self._id, ":", self.name, ") can't be created!!!\n"
-                node_collection.collection.remove({'_id': self._id})
+                print "\n DocumentError: This document (", self.id, ":", self.name, ") can't be created!!!\n"
+                node_collection.collection.remove({'_id': self.id})
                 raise RuntimeError(err)
 
         else:
@@ -702,12 +708,13 @@ class Node(DjangoDocument):
                         # user = User.objects.get(pk=self.created_by).username
                         user_list = User.objects.filter(pk=self.created_by)
                         user = user_list[0].username if user_list else 'user'
-                        message = "This document (" + self.name + ") is re-created by " + user + " on " + self.created_at.strftime("%d %B %Y")
-                        rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
+                        if self.created_at:
+                            message = "This document (" + self.name + ") is re-created by " + user + " on " + self.created_at.strftime("%d %B %Y")
+                            rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
 
                 except Exception as err:
-                    print "\n DocumentError: This document (", self._id, ":", self.name, ") can't be re-created!!!\n"
-                    node_collection.collection.remove({'_id': self._id})
+                    print "\n DocumentError: This document (", self.id, ":", self.name, ") can't be re-created!!!\n"
+                    node_collection.collection.remove({'_id': self.id})
                     raise RuntimeError(err)
 
             try:
@@ -719,14 +726,14 @@ class Node(DjangoDocument):
                     rcs_obj.checkin(fp, 1, message.encode('utf-8'))
 
             except Exception as err:
-                print "\n DocumentError: This document (", self._id, ":", self.name, ") can't be updated!!!\n"
+                print "\n DocumentError: This document (", self.id, ":", self.name, ") can't be updated!!!\n"
                 raise RuntimeError(err)
 
         #update the snapshot feild
         if kwargs.get('groupid'):
             # gets the last version no.
             rcsno = history_manager.get_current_version(self)
-            node_collection.collection.update({'_id':self._id}, {'$set': {'snapshot'+"."+str(kwargs['groupid']):rcsno }}, upsert=False, multi=True)
+            node_collection.collection.update({'_id':self.id}, {'$set': {'snapshot'+"."+str(kwargs['groupid']):rcsno }}, upsert=False, multi=True)
 
 
     # User-Defined Functions
@@ -785,9 +792,9 @@ class Node(DjangoDocument):
             if "_id" in self:
                 # If - node has key '_id'
                 from triple import triple_collection
-                attributes = triple_collection.find({'_type': "GAttribute", 'subject': self._id})
+                attributes = triple_collection.find({'_type': "GAttribute", 'subject': self.id})
                 for attr_obj in attributes:
-                    # attr_obj is of type - GAttribute [subject (node._id), attribute_type (AttributeType), object_value (value of attribute)]
+                    # attr_obj is of type - GAttribute [subject (node.id), attribute_type (AttributeType), object_value (value of attribute)]
                     # Must convert attr_obj.attribute_type [dictionary] to node_collection(attr_obj.attribute_type) [document-object]
                     # PREV: AttributeType.append_attribute(node_collection.collection.AttributeType(attr_obj.attribute_type), possible_attributes, attr_obj.object_value)
                     AttributeType.append_attribute(attr_obj.attribute_type, possible_attributes, attr_obj.object_value)
@@ -877,13 +884,13 @@ class Node(DjangoDocument):
             # Case - While editing GSystem Checking in GRelation
             # collection - to collect relations' values, if already
             # set!
-            if "_id" in self:
+            if "id" in self:
                 # If - node has key '_id'
                 from triple import triple_collection
-                relations = triple_collection.find({'_type': "GRelation", 'subject': self._id, 'status': u"PUBLISHED"})
+                relations = triple_collection.find({'_type': "GRelation", 'subject': self.id, 'status': u"PUBLISHED"})
                 for rel_obj in relations:
                     # rel_obj is of type - GRelation
-                    # [subject(node._id), relation_type(RelationType),
+                    # [subject(node.id), relation_type(RelationType),
                     # right_subject(value of related object)] Must
                     # convert rel_obj.relation_type [dictionary] to
                     # collection.Node(rel_obj.relation_type)
@@ -919,10 +926,10 @@ class Node(DjangoDocument):
             if "_id" in self:
                 # If - node has key '_id'
                 from triple import triple_collection
-                relations = triple_collection.find({'_type': "GRelation", 'right_subject': self._id, 'status': u"PUBLISHED"})
+                relations = triple_collection.find({'_type': "GRelation", 'right_subject': self.id, 'status': u"PUBLISHED"})
                 for rel_obj in relations:
                     # rel_obj is of type - GRelation
-                    # [subject(node._id), relation_type(RelationType),
+                    # [subject(node.id), relation_type(RelationType),
                     # right_subject(value of related object)] Must
                     # convert rel_obj.relation_type [dictionary] to
                     # collection.Node(rel_obj.relation_type)
@@ -961,19 +968,19 @@ class Node(DjangoDocument):
 
     def get_attribute(self, attribute_type_name, status=None):
         from gattribute import GAttribute
-        return GAttribute.get_triples_from_sub_type(self._id, attribute_type_name, status)
+        return GAttribute.get_triples_from_sub_type(self.id, attribute_type_name, status)
 
     def get_attributes_from_names_list(self, attribute_type_name_list, status=None, get_obj=False):
         from gattribute import GAttribute
-        return GAttribute.get_triples_from_sub_type_list(self._id, attribute_type_name_list, status, get_obj)
+        return GAttribute.get_triples_from_sub_type_list(self.id, attribute_type_name_list, status, get_obj)
 
     def get_relation(self, relation_type_name, status=None):
         from grelation import GRelation
-        return GRelation.get_triples_from_sub_type(self._id, relation_type_name, status)
+        return GRelation.get_triples_from_sub_type(self.id, relation_type_name, status)
 
 
     def get_relation_right_subject_nodes(self, relation_type_name, status=None):
-        return node_collection.find({'_id': {'$in': [r.right_subject for r in self.get_relation(relation_type_name)]} })
+        return node_collection.find({'id': {'$in': [r.right_subject for r in self.get_relation(relation_type_name)]} })
 
 
     def get_neighbourhood(self, member_of):
@@ -1004,3 +1011,4 @@ class Node(DjangoDocument):
 
 # DATABASE Variables
 node_collection     = db[Node.collection_name].Node
+

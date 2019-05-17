@@ -2,52 +2,57 @@ from base_imports import *
 from node import *
 from gsystem import *
 
-@connection.register
+
 class Group(GSystem):
     """Group class to create collection (group) of members
     """
 
-    structure = {
-        'group_type': basestring,            # Types of groups - Anonymous, public or private
-        'edit_policy': basestring,           # Editing policy of the group - non editable,editable moderated or editable non-moderated
-        'subscription_policy': basestring,   # Subscription policy to this group - open, by invitation, by request
-        'visibility_policy': basestring,     # Existance of the group - announced or not announced
-        'disclosure_policy': basestring,     # Members of this group - disclosed or not
-        'encryption_policy': basestring,     # Encryption - yes or no
-        'agency_type': basestring,           # A choice field such as Pratner,Govt.Agency, NGO etc.
-        'group_admin': [int],		     # ObjectId of Author class
-        'moderation_level': int,              # range from 0 till any integer level
-        'project_config': dict
-    }
+    # structure = {
+    group_type=StringField(default=TYPES_OF_GROUP_DEFAULT),            # Types of groups - Anonymous, public or private
+    edit_policy=StringField(default=EDIT_POLICY_DEFAULT),           # Editing policy of the group - non editable,editable moderated or editable non-moderated
+    subscription_policy=StringField(default=SUBSCRIPTION_POLICY_DEFAULT),   # Subscription policy to this group - open, by invitation, by request
+    visibility_policy=StringField(default=EXISTANCE_POLICY_DEFAULT),     # Existance of the group - announced or not announced
+    disclosure_policy=StringField(default=LIST_MEMBER_POLICY_DEFAULT),     # Members of this group - disclosed or not
+    encryption_policy=StringField(default=ENCRYPTION_POLICY_DEFAULT),     # Encryption - yes or no
+    agency_type=StringField(default=GSTUDIO_GROUP_AGENCY_TYPES_DEFAULT),           # A choice field such as Pratner,Govt.Agency, NGO etc.
+    group_admin=ListField(IntField()),		         # ObjectId of Author class
+    moderation_level=IntField(default=-1),             # range from 0 till any integer level
+    project_config=DictField()
+    # }
 
-    use_dot_notation = True
+    
 
     # required_fields = ['_type', 'name', 'created_by']
 
-    default_values = {
-                        'group_type': TYPES_OF_GROUP_DEFAULT,
-                        'edit_policy': EDIT_POLICY_DEFAULT,
-                        'subscription_policy': SUBSCRIPTION_POLICY_DEFAULT,
-                        'visibility_policy': EXISTANCE_POLICY_DEFAULT,
-                        'disclosure_policy': LIST_MEMBER_POLICY_DEFAULT,
-                        'encryption_policy': ENCRYPTION_POLICY_DEFAULT,
-                        'agency_type': GSTUDIO_GROUP_AGENCY_TYPES_DEFAULT,
-                        'group_admin': [],
-                        'moderation_level': -1
-                    }
+    # default_values = {
+    #                     'group_type': TYPES_OF_GROUP_DEFAULT,
+    #                     'edit_policy': EDIT_POLICY_DEFAULT,
+    #                     'subscription_policy': SUBSCRIPTION_POLICY_DEFAULT,
+    #                     'visibility_policy': EXISTANCE_POLICY_DEFAULT,
+    #                     'disclosure_policy': LIST_MEMBER_POLICY_DEFAULT,
+    #                     'encryption_policy': ENCRYPTION_POLICY_DEFAULT,
+    #                     'agency_type': GSTUDIO_GROUP_AGENCY_TYPES_DEFAULT,
+    #                     'group_admin': [],
+    #                     'moderation_level': -1
+    #                 }
 
-    validators = {
-        'group_type': lambda x: x in TYPES_OF_GROUP,
-        'edit_policy': lambda x: x in EDIT_POLICY,
-        'subscription_policy': lambda x: x in SUBSCRIPTION_POLICY,
-        'visibility_policy': lambda x: x in EXISTANCE_POLICY,
-        'disclosure_policy': lambda x: x in LIST_MEMBER_POLICY,
-        'encryption_policy': lambda x: x in ENCRYPTION_POLICY,
-        'agency_type': lambda x: x in GSTUDIO_GROUP_AGENCY_TYPES,
-        # 'name': lambda x: x not in \
-        # [ group_obj['name'] for group_obj in \
-        # node_collection.find({'_type': 'Group'}, {'name': 1, '_id': 0})]
-    }
+    # validators = {
+    #     'group_type': lambda x: x in TYPES_OF_GROUP,
+    #     'edit_policy': lambda x: x in EDIT_POLICY,
+    #     'subscription_policy': lambda x: x in SUBSCRIPTION_POLICY,
+    #     'visibility_policy': lambda x: x in EXISTANCE_POLICY,
+    #     'disclosure_policy': lambda x: x in LIST_MEMBER_POLICY,
+    #     'encryption_policy': lambda x: x in ENCRYPTION_POLICY,
+    #     'agency_type': lambda x: x in GSTUDIO_GROUP_AGENCY_TYPES,
+    #     # 'name': lambda x: x not in \
+    #     # [ group_obj['name'] for group_obj in \
+    #     # node_collection.find({'_type': 'Group'}, {'name': 1, '_id': 0})]
+    # }
+
+    meta={
+        'allow_inheritance':True,
+        'use_dot_notation' : True
+        }
 
     @staticmethod
     def get_group_name_id(group_name_or_id, get_obj=False):
@@ -150,10 +155,12 @@ class Group(GSystem):
         """
 
         if (user.is_superuser) or (user.id == self.created_by) or (user.id in self.group_admin):
+            print "superuser:"
             return True
         else:
             auth_obj = node_collection.one({'_type': 'Author', 'created_by': user.id})
             if auth_obj and auth_obj.agency_type == 'Teacher':
+                print "with auth_obj"
                 return True
         return False
 

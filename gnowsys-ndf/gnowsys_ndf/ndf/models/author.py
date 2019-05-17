@@ -2,27 +2,27 @@ from base_imports import *
 from group import *
 
 
-@connection.register
+
 class Author(Group):
     """Author class to store django user instances
     """
-    structure = {
-        'email': unicode,
-        'password': unicode,
-        'visited_location': [],
-        'preferred_languages': dict,          # preferred languages for users like preferred lang. , fall back lang. etc.
-        'group_affiliation': basestring,
-	'language_proficiency':list,
-	'subject_proficiency':list
+    # structure = {
+    email = StringField(),
+    password = StringField(),
+    visited_location= ListField(),
+    preferred_languages=DictField(),          # preferred languages for users like preferred lang. , fall back lang. etc.
+    group_affiliation=StringField(),
+    language_proficiency=ListField(),
+    subject_proficiency=ListField()
+# }
+    meta = {
+        'use_dot_notation' : True
     }
+    # validators = {
+    #     'agency_type': lambda x: x in GSTUDIO_AUTHOR_AGENCY_TYPES         # agency_type inherited from Group class
+    # }
 
-    use_dot_notation = True
-
-    validators = {
-        'agency_type': lambda x: x in GSTUDIO_AUTHOR_AGENCY_TYPES         # agency_type inherited from Group class
-    }
-
-    required_fields = ['name']
+    # required_fields = ['name']
 
     def __init__(self, *args, **kwargs):
         super(Author, self).__init__(*args, **kwargs)

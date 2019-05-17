@@ -73,7 +73,7 @@ class HistoryManager():
 
         Returns: a string representing json-file's path
         """
-        file_name = (document_object._id.__str__() + '.json')
+        file_name = (document_object.id.__str__() + '.json')
 
         collection_dir = \
             (os.path.join(self.__RCS_REPO_DIR, \
@@ -86,8 +86,10 @@ class HistoryManager():
         # here n := hash_level_num
         collection_hash_dirs = ""
         for pos in range(0, RCS_REPO_DIR_HASH_LEVEL):
+            print pos
             collection_hash_dirs += \
-                (document_object._id.__str__()[-2**pos] + "/")
+                (document_object.id.__str__()[-2**pos] + "/")
+            print collection_hash_dirs
 
         file_path = \
             os.path.join(collection_dir, \
@@ -129,7 +131,7 @@ class HistoryManager():
         #                   "created @ following path:\n {1}\n"\
         #                   .format(collection, rcs_repo_collection))
 
-    def create_or_replace_json_file(self, document_object=None):
+    def create_or_replace_json_file(self, document_object = None):
         """Creates/Overwrites a json-file for passed document object in
         its respective hashed-directory structure.
 
@@ -152,6 +154,8 @@ class HistoryManager():
         # Counter
 
         # collection_list = ('MetaType', 'GSystemType', 'GSystem', 'AttributeType', 'GAttribute', 'RelationType', 'GRelation', 'Filehive', 'Buddy', 'Counter')
+        print "in create of history_manager"
+        print "docobject:",document_object
         collection_list = get_all_collection_child_names() 
         file_res = False    # True, if no error/exception occurred
         if document_object is not None and \
@@ -209,9 +213,10 @@ class HistoryManager():
             # if document_object is None or
             # !isinstance(document_object, collection_list)
 
+            print "else message"
             msg = " Following instance is either invalid or " \
             + "not matching given instances-type list " + str(collection_list) + ":-" \
-            + "\n\tObjectId: " + document_object._id.__str__() \
+            + "\n\tObjectId: " + document_object.id.__str__() \
             + "\n\t    Type: " + document_object._type \
             + "\n\t    Name: " + document_object.get('name', '')
             raise RuntimeError(msg)
@@ -275,7 +280,7 @@ class HistoryManager():
                         doc_obj[k] = oid_ObjectId_list
 
                 except Exception as e:
-                    print "\n Exception for document's ("+str(doc_obj._id)+") key ("+k+") -- ", str(e), "\n"
+                    print "\n Exception for document's ("+str(doc_obj.id)+") key ("+k+") -- ", str(e), "\n"
 
         return doc_obj
 
@@ -293,4 +298,4 @@ class HistoryManager():
             os.remove(json_file_path)
             print "\nDeleted RCS json file : ", json_file_path
         except Exception as e:
-            print "\nException occured while deleting RCS file for node '", node_obj._id.__str__(), "' : ", e
+            print "\nException occured while deleting RCS file for node '", node_obj.id.__str__(), "' : ", e

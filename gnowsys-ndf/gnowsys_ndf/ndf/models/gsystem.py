@@ -2,53 +2,49 @@ from base_imports import *
 from node import Node, node_collection
 from filehive import filehive_collection
 
+class Filehivedata(EmbeddedDocument):
+    _id = ObjectIdField(required = True)
+    relurl = StringField()
 
-@connection.register
+class Filedetails(EmbeddedDocument):
+    mime_type = StringField()
+    original = MapField(EmbeddedDocumentField(Filehivedata))
+    mid = MapField(EmbeddedDocumentField(Filehivedata))
+    thumbnail = MapField(EmbeddedDocumentField(Filehivedata))
+
+class Legalinfo(EmbeddedDocument):
+    copyright = StringField(default = GSTUDIO_DEFAULT_COPYRIGHT),
+    license= StringField(default = GSTUDIO_DEFAULT_LICENSE)
+
+
 class GSystem(Node):
     """GSystemType instance
     """
 
     # static vars:
-    image_sizes_name = ['original', 'mid', 'thumbnail']
-    image_sizes = {'mid': (500, 300), 'thumbnail': (128, 128)}
-    sys_gen_image_prefix = 'gstudio-'
+    image_sizes_name = ListField(StringField(),default=['original', 'mid', 'thumbnail'])
+    image_sizes = {'mid': (500, 300), 'thumbnail' : (128, 128)}
+    sys_gen_image_prefix = StringField(default='gstudio-')
 
-    structure = {
-        'attribute_set': [dict],    # ObjectIds of GAttributes
-        'relation_set': [dict],     # ObjectIds of GRelations
-        'module_set': [dict],       # Holds the ObjectId & SnapshotID (version_number)
-                                        # of collection elements
-                                        # along with their sub-collection elemnts too
-        'if_file': {
-                        'mime_type': basestring,
-                        'original': {'id': ObjectId, 'relurl': basestring},
-                        'mid': {'id': ObjectId, 'relurl': basestring},
-                        'thumbnail': {'id': ObjectId, 'relurl': basestring}
-                    },
-        'author_set': [int],        # List of Authors
-        'annotations': [dict],      # List of json files for annotations on the page
-        'origin': [],                # e.g:
-                                        # [
-                                        #   {"csv-import": <fn name>},
-                                        #   {"sync_source": "<system-pub-key>"}
-                                        # ]
-        # Replace field 'license': basestring with
-        # legal: dict
-        'legal': {
-                    'copyright': basestring,
-                    'license': basestring
-                    }
-    }
+    attribute_set= ListField(DictField()),    # ObjectIds of GAttributes
+    relation_set= ListField(DictField()),     # ObjectIds of GRelations
+    module_set= ListField(DictField()),       # Holds the ObjectId & SnapshotID (version_number)
+                                    # of collection elements
+                                    # along with their sub-collection elemnts too
+    if_file= MapField(EmbeddedDocumentField(Filedetails)),
+    author_set= ListField(IntField()),        # List of Authors
+    annotations= ListField(DictField()),      # List of json files for annotations on the page
+    #origin= ListField(),                # e.g:
+                                    # [
+                                    #   {"csv-import"= <fn name>},
+                                    #   {"sync_source"= "<system-pub-key>"}
+                                    # ]
+    # Replace field 'license'= basestring with
+    # legal= dict
+    legal= MapField(EmbeddedDocumentField(Legalinfo))
+
 
     use_dot_notation = True
-
-    # default_values = "CC-BY-SA 4.0 unported"
-    default_values = {
-                        'legal': {
-                            'copyright': GSTUDIO_DEFAULT_COPYRIGHT,
-                            'license': GSTUDIO_DEFAULT_LICENSE
-                        }
-                    }
 
     def fill_gstystem_values(self,
                             request=None,
@@ -72,14 +68,14 @@ class GSystem(Node):
 
             if existing_fh_obj:
                 existing_file_gs = node_collection.find_one({
-                                    '_type': 'GSystem',
-                                    'if_file.original.id': existing_fh_obj._id
+                                    '_type' : 'GSystem',
+                                    'if_file.original.id' : existing_fh_obj._id
                                 })
-
+            print kwargs
             if kwargs.has_key('unique_gs_per_file') and kwargs['unique_gs_per_file']:
 
                 if existing_file_gs:
-                    print "Returning:: "
+                    print "Returning:= "
                     return existing_file_gs
 
         self.fill_node_values(request, **kwargs)
@@ -96,7 +92,7 @@ class GSystem(Node):
         # origin:
         if origin:
             self['origin'].append(origin)
-        # else:  # rarely/no origin field value will be sent via form/request.
+        # else=  # rarely/no origin field value will be sent via form/request.
         #     self['origin'] = request.POST.get('origin', '').strip()
 
         if existing_file_gs:
@@ -108,7 +104,7 @@ class GSystem(Node):
                     if isinstance(v, dict):
                         __check_if_file(v)
                     else:
-                        # print "{0} : {1}".format(k, v)
+                        # print "{0} = {1}".format(k, v)
                         if not v:
                             existing_file_gs_if_file = None
 
@@ -139,7 +135,7 @@ class GSystem(Node):
 
             mime_type = original_filehive_obj.mime_type
 
-            # print "original_filehive_obj: ", original_filehive_obj
+            # print "original_filehive_obj= ", original_filehive_obj
             if original_filehive_obj:
 
                 self.if_file.mime_type       = mime_type
@@ -174,7 +170,7 @@ class GSystem(Node):
                                 if_image_size_name=each_image_size,
                                 if_image_dimensions=dimension)
 
-                            # print "each_image_size_id_url : ",each_image_size_id_url
+                            # print "each_image_size_id_url = ",each_image_size_id_url
                             self.if_file[each_image_size]['id']    = each_image_size_id_url['id']
                             self.if_file[each_image_size]['relurl'] = each_image_size_id_url['relurl']
 
@@ -217,7 +213,7 @@ class GSystem(Node):
             if md5_or_relurl:
                 file_blob = gfs.open(md5_or_relurl)
         except Exception as e:
-                print "File '", md5_or_relurl, "' not found: ", e
+                print "File '", md5_or_relurl, "' not found= ", e
 
         return file_blob
 
@@ -232,26 +228,26 @@ class GSystem(Node):
         gst_name, gst_id = GSystemType.get_gst_name_id(member_of_name)
         if if_gstaff:
             query = {
-                    '_type': 'GSystem',
-                    'status': 'PUBLISHED',
-                    'group_set': {'$in': [group_id]},
-                    'member_of': {'$in': [gst_id]},
-                    'access_policy': {'$in': [u'Public', u'PUBLIC', u'PRIVATE']}
+                    '_type' : 'GSystem',
+                    'status' :'PUBLISHED',
+                    'group_set' : {'$in' :[group_id]},
+                    'member_of' :{'$in' : [gst_id]},
+                    'access_policy' : {'$in' : [u'Public', u'PUBLIC', u'PRIVATE']}
                     }
         else:
             query = {
-                    '_type': 'GSystem',
-                    'status': 'PUBLISHED',
-                    'group_set': {'$in': [group_id]},
-                    'member_of': {'$in': [gst_id]},
+                    '_type' : 'GSystem',
+                    'status' : 'PUBLISHED',
+                    'group_set' : {'$in':  [group_id]},
+                    'member_of' : {'$in' :[gst_id]},
                     '$or':[
-                            {'access_policy': {'$in': [u'Public', u'PUBLIC']}},
-                            {'$and': [
-                                {'access_policy': u"PRIVATE"},
-                                {'created_by': user_id}
+                            {'access_policy' : {'$in' :[u'Public', u'PUBLIC']}},
+                            {'$and' : [
+                                {'access_policy' : u"PRIVATE"},
+                                {'created_by' : user_id}
                                 ]
                             },
-                            {'created_by': user_id}
+                            {'created_by' : user_id}
                         ]
                     }
         for each in kwargs:

@@ -3,34 +3,35 @@ from models_utils import ActiveUsers
 from history_manager import *
 from author import *
 
-@connection.register
-class Buddy(DjangoDocument):
+
+class Buddy(DynamicDocument):
     """
     Enables logged in user to add buddy.
     """
 
+    
+
+    # structure = {
+    _type=StringField(),
+    loggedin_userid=IntField(required=True),
+    session_key=StringField(required=True),
+    buddy_in_out=DictField(),
+        # e.g:
+        # buddy_in_out = {
+        #           "auth_id": [
+        #                         {"in": datetime.datetime, "out": datetime.datetime},
+        #                         {"in": datetime.datetime, "out": datetime.datetime}
+        #                    ]
+        #           }
+    starts_at=DateTimeField(),
+    ends_at=DateTimeField()
+    # }
+
+    # required_fields = ['loggedin_userid', 'session_key']
     collection_name = 'Buddies'
-
-    structure = {
-        '_type': unicode,
-        'loggedin_userid': int,
-        'session_key': basestring,
-        'buddy_in_out': dict,
-            # e.g:
-            # buddy_in_out = {
-            #           "auth_id": [
-            #                         {"in": datetime.datetime, "out": datetime.datetime},
-            #                         {"in": datetime.datetime, "out": datetime.datetime}
-            #                    ]
-            #           }
-        'starts_at': datetime.datetime,
-        'ends_at': datetime.datetime
+    meta = {
+        'use_dot_notation' : True,
     }
-
-    required_fields = ['loggedin_userid', 'session_key']
-
-    use_dot_notation = True
-
     @staticmethod
     def query_buddy_obj(loggedin_userid, session_key):
         '''

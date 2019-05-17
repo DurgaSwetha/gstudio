@@ -4,72 +4,87 @@ from group import Group
 from buddy import Buddy
 from history_manager import HistoryManager
 
+# resources will be created will have following default schema dict:
+default_resource_stats = {
+    'created' : 0,  # no of files/pages/any-app's instance created
 
-@connection.register
-class Counter(DjangoDocument):
+    'visits_gained': 0, # Count of unique visitors(user's) not total visits
+    'visits_on_others_res':  0, # count of visits not resources
+
+    'comments_gained':  0,  # Count of comments not resources
+    'commented_on_others_res':  0, # count of resources not comments
+    'comments_by_others_on_res': {},
+    # {userid: <count int>, userid: <count int>, ..}
+
+    'avg_rating_gained': 0,  # total_rating/rating_count_received
+    'rating_count_received': 0,
+}
+
+class PageInfo(EmbeddedDocument):
+    blog=DictField(default=default_resource_stats),
+    wiki=DictField(default=default_resource_stats),
+    info=DictField(default=default_resource_stats)
+
+class Quizdata(EmbeddedDocument): 
+    attempted =IntField(default=0),
+    correct=IntField(default=0),
+    incorrect=IntField(default=0)
+
+class CompletionStats(EmbeddedDocument):
+    completed=IntField(default=0),
+    total=IntField(default=0)    
+
+class Coursecompletion(EmbeddedDocument):
+    modules = MapField(EmbeddedDocumentField(CompletionStats))
+    units = MapField(EmbeddedDocumentField(CompletionStats))
+
+class Counter(DynamicDocument):
 
     collection_name = 'Counters'
 
     # resources will be created will be of following type:
     resource_list = ['page', 'file']
 
-    # resources will be created will have following default schema dict:
-    default_resource_stats = {
-        'created' : 0,  # no of files/pages/any-app's instance created
+    # structure = {
+    _type=StringField(),
+    user_id=IntField(required = True),
+    auth_id=ObjectIdField(required = True),
+    group_id=ObjectIdField(required = True),
+    last_update=DateTimeField(default=datetime.datetime.now()),
 
-        'visits_gained': 0, # Count of unique visitors(user's) not total visits
-        'visits_on_others_res':  0, # count of visits not resources
+    # 'enrolled':bool,
+    is_group_member=BooleanField(default=False),
+    # 'course_score':int,
+    group_points=IntField(),
 
-        'comments_gained':  0,  # Count of comments not resources
-        'commented_on_others_res':  0, # count of resources not comments
-        'comments_by_others_on_res': {},
-        # {userid: <count int>, userid: <count int>, ..}
+    # -- notes --
+    page = MapField(EmbeddedDocumentField(PageInfo)),  # resource
 
-        'avg_rating_gained': 0,  # total_rating/rating_count_received
-        'rating_count_received': 0,
-    }
+    # -- files --
+    file=DictField(default=default_resource_stats),  # resource
 
+    # -- quiz --
+    quiz= MapField(EmbeddedDocumentField(Quizdata)),
 
-    structure = {
-       '_type': unicode,
-        'user_id': int,
-        'auth_id': ObjectId,
-        'group_id': ObjectId,
-        'last_update': datetime.datetime,
+    # -- interactions --
+    total_comments_by_user=IntField(default=0),
 
-        # 'enrolled':bool,
-        'is_group_member': bool,
-        # 'course_score':int,
-        'group_points': int,
+    # Total fields should be updated on enroll action
+    # On module/unit add/delete, update 'total' fields for all users in celery
+    
+    # following is mapping of fields w.r.t. newer unit/lesson/activity implementation
+    # <i2c time course>: <newer unit implementation>
+    #
+    # course: unit
+    # modules: lesson
+    # units: activities
+    course = MapField(EmbeddedDocumentField(Coursecompletion)),
 
-        # -- notes --
-        'page': {'blog': dict, 'wiki': dict, 'info': dict},  # resource
-
-        # -- files --
-        'file': dict,  # resource
-
-        # -- quiz --
-        'quiz': {'attempted': int, 'correct': int, 'incorrect': int},
-
-        # -- interactions --
-        'total_comments_by_user': int,
-
-        # Total fields should be updated on enroll action
-        # On module/unit add/delete, update 'total' fields for all users in celery
-        
-        # following is mapping of fields w.r.t. newer unit/lesson/activity implementation
-        # <i2c time course>: <newer unit implementation>
-        #
-        # course: unit
-        # modules: lesson
-        # units: activities
-        'course':{'modules':{'completed':int, 'total':int}, 'units':{'completed':int, 'total':int}},
-
-        # 'visited_nodes' = {str(ObjectId): int(count_of_visits)}
-        'visited_nodes': {basestring: int},
-        'assessment': []
-        #             [{'id: basestring, 'correct': int, 'failed_attempts': int}]
-    }
+    # 'visited_nodes' = {str(ObjectId): int(count_of_visits)}
+    visited_nodes= MapField(IntField()),
+    assessment= ListField()
+    #             [{'id: basestring, 'correct': int, 'failed_attempts': int}]
+    
 
     default_values = {
         'last_update': datetime.datetime.now(),
@@ -88,18 +103,19 @@ class Counter(DjangoDocument):
         'course.units.total': 0,
         'course.units.completed': 0,
     }
-
-    indexes = [
-        {
-            # 1: Compound index
-            'fields': [
-                ('user_id', INDEX_ASCENDING), ('group_id', INDEX_ASCENDING)
-            ]
-        },
-    ]
-
-    required_fields = ['user_id', 'group_id', 'auth_id']
-    use_dot_notation = True
+    meta = {
+        'use_dot_notation' : True,
+        'indexes' : [
+            {
+                # 1: Compound index
+                'fields': [
+                    'user_id', 'group_id'
+                ]
+            },
+        ]
+    }
+    # required_fields = ['user_id', 'group_id', 'auth_id']
+    
 
     def __unicode__(self):
         return self._id

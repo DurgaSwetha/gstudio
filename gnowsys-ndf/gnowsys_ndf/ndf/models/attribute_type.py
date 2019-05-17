@@ -1,7 +1,6 @@
 from base_imports import *
 from node import *
 
-@connection.register
 class AttributeType(Node):
     '''To define reusable properties that can be set as possible
     attributes to a GSystemType. A set of possible properties defines
@@ -9,47 +8,46 @@ class AttributeType(Node):
 
     '''
 
-    structure = {
-    'data_type': basestring, # check required: only of the DATA_TYPE_CHOICES
-    'complex_data_type': [unicode], # can be a list or a dictionary
-    'subject_type': [ObjectId], # check required: only one of Type
-                                    # Nodes. GSystems cannot be set as
+    data_type =  StringField(required=True), # check required: only of the DATA_TYPE_CHOICES
+    complex_data_type= ListField(StringField(max_length=30)), # can be a list or a dictionary
+    subject_type = ListField(StringField(),required=True,default=[]), # check required: only one of Type
+                                 # Nodes. GSystems cannot be set as
                                     # subject_types
-    'subject_scope': list,
-    'object_scope': list,
-    'attribute_type_scope': list,
-    'applicable_node_type': [basestring],	# can be one or more
+    subject_scope = ListField(default=[]),
+    object_scope=ListField(default=[]),
+    attribute_type_scope=ListField(default=[]),
+    applicable_node_type=ListField(StringField()),	# can be one or more
                                                 # than one of
                                                 # NODE_TYPE_CHOICES
-    'verbose_name': basestring,
-    'null': bool,
-    'blank': bool,
-    'help_text': unicode,
-    'max_digits': int, # applicable if the datatype is a number
-    'decimal_places': int, # applicable if the datatype is a float
-    'auto_now': bool,
-    'auto_now_add': bool,
-    'upload_to': unicode,
-    'path': unicode,
-    'verify_exist': bool,
+    verbose_name=StringField(),
+    null=BooleanField(),
+    blank=BooleanField(),
+    help_text=StringField(),
+    max_digits=IntField(), # applicable if the datatype is a number
+    decimal_places=IntField(), # applicable if the datatype is a float
+    auto_now=BooleanField(),
+    auto_now_add=BooleanField(),
+    upload_to=StringField(),
+    path=StringField(),
+    verify_exist=BooleanField(),
 
     #   raise issue y used
-    'min_length': int,
-    'required': bool,
-    'label': unicode,
-    'unique': bool,
-    'validators': list,
-    'default': unicode,
-    'editable': bool
-    }
+    min_length=IntField(),
+    required=BooleanField(),
+    label=StringField(),
+    unique=BooleanField(),
+    validators=ListField(),
+    default=StringField(),
+    editable=BooleanField()
+    
 
-    required_fields = ['data_type', 'subject_type']
+    # required_fields = ['data_type', 'subject_type']
     use_dot_notation = True
-    default_values = {
-                        'subject_scope': [],
-                        'object_scope': [],
-                        'attribute_type_scope': [],
-                    }
+    # default_values = {
+    #                     'subject_scope': [],
+    #                     'object_scope': [],
+    #                     'attribute_type_scope': [],
+    #                 }
 
     # validators={
     # 'data_type':x in DATA_TYPE_CHOICES

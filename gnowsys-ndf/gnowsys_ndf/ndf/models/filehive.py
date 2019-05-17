@@ -1,8 +1,8 @@
 from base_imports import *
 from history_manager import HistoryManager
 
-@connection.register
-class Filehive(DjangoDocument):
+
+class Filehive(DynamicDocument):
     """
     Filehive class to hold any resource in file system.
     """
@@ -10,34 +10,34 @@ class Filehive(DjangoDocument):
     objects = models.Manager()
     collection_name = 'Filehives'
 
-    structure = {
-        '_type': unicode,
-        'md5': basestring,
-        'relurl': basestring,
-        'mime_type': basestring,             # Holds the type of file
-        'length': float,
-        'filename': unicode,
-        'first_uploader': int,
-        'first_parent': ObjectId,
-        'uploaded_at': datetime.datetime,
-        'if_image_size_name': basestring,
-        'if_image_dimensions': basestring,
-        }
-
-    indexes = [
-        {
-            # 12: Single index
-            'fields': [
-                ('mime_type', INDEX_ASCENDING)
-            ]
-        }
-    ]
-
+    
+    _type = StringField(),
+    md5 = StringField(required=True),
+    relurl=StringField(),
+    mime_type=StringField(required=True),             # Holds the type of file
+    length=DecimalField(),
+    filename=StringField(),
+    first_upload=IntField(),
+    first_parent=ObjectIdField(),
+    uploaded_at= DateTimeField(default = datetime.datetime.now()),
+    if_image_size_name= StringField(),
+    if_image_dimensions= StringField(),
+    
+    meta = {
+        'indexes' : [
+            {
+                # 12: Single index
+                'fields': [
+                    'mime_type'
+                ]
+            }
+        ]
+    }
     use_dot_notation = True
-    required_fields = ['md5', 'mime_type']
-    default_values = {
-                        'uploaded_at': datetime.datetime.now
-                    }
+    # required_fields = ['md5', 'mime_type']
+    # default_values = {
+    #                     'uploaded_at': datetime.datetime.now
+    #                 }
 
 
     def __unicode__(self):

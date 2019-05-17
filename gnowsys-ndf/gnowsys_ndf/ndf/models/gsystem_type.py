@@ -7,18 +7,18 @@ from meta_type import *
 
 # user should have a list of groups attributeType added should
 # automatically be added to the attribute_type_set of GSystemType
-@connection.register
+
 class GSystemType(Node):
     """Class to generalize GSystems
     """
 
-    structure = {
-        'meta_type_set': [MetaType],            # List of Metatypes
-        'attribute_type_set': [AttributeType],  # Embed list of Attribute Type Class as Documents
-        'relation_type_set': [RelationType],    # Holds list of Relation Types
-        'process_type_set': [ProcessType],      # List of Process Types
-        'property_order': []                    # List of user-defined attributes in template-view order
-    }
+    # structure = {
+    meta_type_set=ListField(ReferenceField(MetaType)),            # List of Metatypes
+    attribute_type_set=ListField(ReferenceField(AttributeType)),  # Embed list of Attribute Type Class as Documents
+    relation_type_set=ListField(ReferenceField(RelationType)),    # Holds list of Relation Types
+    process_type_set = ListField(ReferenceField(ProcessType)),      # List of Process Types
+    property_order=ListField()                    # List of user-defined attributes in template-view order
+    # }
 
     use_dot_notation = True
     use_autorefs = True                         # To support Embedding of Documents

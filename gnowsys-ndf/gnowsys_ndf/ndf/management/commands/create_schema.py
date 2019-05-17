@@ -24,7 +24,12 @@ from gnowsys_ndf.settings import GSTUDIO_DEFAULT_SYSTEM_TYPES_LIST
 
 ####################################################################################################################
 
+print "in create_schema"
+
 SCHEMA_ROOT = os.path.join( os.path.dirname(__file__), "schema_files" )
+
+print SCHEMA_ROOT 
+
 
 log_list = [] # To hold intermediate errors
 log_list.append("\n######### Script run on : " + time.strftime("%c") + " #########\n############################################################\n")
@@ -61,7 +66,7 @@ class Command(BaseCommand):
               json_file_name = file_name.rstrip("csv") + "json"
               json_file_path = os.path.join(SCHEMA_ROOT, json_file_name)
               json_file_content = ""
-        
+              print json_file_name,json_file_path
               with open(csv_file_path, 'rb') as csv_file:
                 csv_file_content = csv.DictReader(csv_file, delimiter=",")
                 json_file_content = []
@@ -79,7 +84,7 @@ class Command(BaseCommand):
                 is_json_file_exists = True
                 info_message = "\n JSONType: Following file (" + json_file_path + ") created successfully."
                 log_list.append(info_message)
-
+                print info_message
             except Exception as e:
               error_message = "\n CSV-JSONError: " + str(e)
               log_list.append(error_message)
@@ -123,7 +128,7 @@ class Command(BaseCommand):
 
         log_file_name = os.path.splitext(file_name)[0] + ".log"
         log_file_path = os.path.join(SCHEMA_ROOT, log_file_name)
-
+        print log_file_path,log_file_name
         with open(log_file_path, 'a') as log_file:
           log_file.writelines(log_list)
 
@@ -147,7 +152,7 @@ def parse_data_create_gtype(json_file_path):
 
   if "ST" in json_file_path:
     type_name = "GSystemType"
-    
+    print "in if of ST"
     for json_document in json_documents_list:
       # Process data in proper format
       try:
@@ -311,6 +316,7 @@ def perform_eval_type(eval_field, json_document, type_to_create, type_convert_ob
 
   try:
     json_document[eval_field] = ast.literal_eval(json_document[eval_field])
+    print json_document[eval_field]
 
   except Exception as e:
     if u"\u201c" in json_document[eval_field]:
@@ -334,15 +340,17 @@ def perform_eval_type(eval_field, json_document, type_to_create, type_convert_ob
 
     else:
       def _append_to_type_list(eval_field, json_document, type_to_create, type_convert_objectid, data, inner_type_list):
-        node = node_collection.one({'_type': type_convert_objectid, 'name': data})
-
+        node = node_collection.find_one({'_type': type_convert_objectid, 'name': data})
+        print "_append", data, type_convert_objectid
         if node:
           if eval_field == "complex_data_type":
-            inner_type_list.append(unicode(node._id))
+            inner_type_list.append(unicode(node['_id']))
           elif eval_field in ["attribute_type_set", "relation_type_set"]:
+            #print "node",node
             inner_type_list.append(node)
           else:
-            inner_type_list.append(node._id)
+            print "befr error"
+            inner_type_list.append(node['_id'])
 
         else:
           if eval_field == "complex_data_type":
@@ -365,8 +373,9 @@ def perform_eval_type(eval_field, json_document, type_to_create, type_convert_ob
       else:
         _append_to_type_list(eval_field, json_document, type_to_create, type_convert_objectid, data, type_list)
   # Sets python-type converted list
+  #print "type_list", type_list
   json_document[eval_field] = type_list
-
+  #print json_document[eval_field]
 
 # -----------------------------------------------------------------------------------------------------------------
 # Create/Edit Function Defined for creating GSystemTypes, AttributeTypes, RelationTypes
@@ -376,27 +385,32 @@ def perform_eval_type(eval_field, json_document, type_to_create, type_convert_ob
 def create_edit_type(type_name, json_document, user_id):
   """Creates factory Types' (including GSystemType, AttributeType, RelationType)
   """
-  node = node_collection.one({'_type': type_name, 'name': json_document['name']})
+  print "values:",type_name,json_document['name'],user_id
+  node = node_collection.find_one({'_type': type_name, 'name': json_document['name']})
   if node is None:
+    print "inside if"
     try:
-      node = eval("node_collection.collection"+"."+type_name)()
+      node = eval(type_name)(_type = type_name,created_by=1)
       
       for key in json_document.iterkeys():
+        print "key:",key
         node[key] = json_document[key]
-
-      node.created_by = user_id
-      node.modified_by = user_id
+      print "name:",node.name
+      node['created_by'] = user_id
+      print "created",node.created_by
+      node['modified_by'] = user_id
       if user_id not in node.contributors:
-        node.contributors.append(user_id)
-
-      node.status = u"PUBLISHED"
-
+        print "inside if",node.contributors
+        node.contributors = [user_id]
+      print "post if"
+      node['status'] = u"PUBLISHED"
+      print "befr save"
       node.save()
-      info_message = "\n "+type_name+" ("+node.name+") created successfully." + "\n"
+      info_message = "\n "+type_name+" ("+node['name']+") created successfully." + "\n"
       log_list.append(info_message)
 
     except Exception as e:
-      error_message = "\n "+type_name+"Error: Failed to create ("+node.name+") as " + str(e) + "\n"
+      error_message = "\n "+type_name+"Error: Failed to create ("+node['name']+") as " + str(e) + "\n"
       log_list.append(error_message)
       raise Exception(error_message)
           
@@ -465,21 +479,21 @@ def create_edit_type(type_name, json_document, user_id):
             is_node_changed = True
 
       if is_node_changed:
-        node.modified_by = user_id
-        if user_id not in node.contributors:
-          node.contributors.append(user_id)
+        node['modified_by'] = user_id
+        if user_id not in node['contributors']:
+          node['contributors'].append(user_id)
 
-        node.status = u"PUBLISHED"
+        node['status'] = u"PUBLISHED"
 
         node.save()
-        info_message = "\n "+type_name+" ("+node.name+") updated successfully." + "\n"
+        info_message = "\n "+type_name+" ("+node['name']+") updated successfully." + "\n"
         log_list.append(info_message)
 
       else:
-        info_message = "\n "+type_name+" ("+node.name+") already exists (Nothing updated) !" + "\n"
+        info_message = "\n "+type_name+" ("+node['name']+") already exists (Nothing updated) !" + "\n"
         log_list.append(info_message)
 
     except Exception as e:
-      error_message = "\n "+type_name+"Error: Failed to update ("+node.name+") as " + str(e) + "\n"
+      error_message = "\n "+type_name+"Error: Failed to update ("+node['name']+") as " + str(e) + "\n"
       log_list.append(error_message)
       raise Exception(error_message)

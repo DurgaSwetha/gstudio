@@ -1,32 +1,25 @@
 from base_imports import *
 from node import *
 
-@connection.register
 class RelationType(Node):
-    structure = {
-        'inverse_name': unicode,
-        'subject_type': [ObjectId],  # ObjectId's of Any Class
-        'object_type': [OR(ObjectId, list)],  # ObjectId's of Any Class
-        'subject_scope': list,
-        'object_scope': list,
-        'relation_type_scope': list,
-        'subject_cardinality': int,
-        'object_cardinality': int,
-        'subject_applicable_nodetype': basestring,  # NODE_TYPE_CHOICES [default (GST)]
-        'object_applicable_nodetype': basestring,
-        'slug': basestring,
-        'is_symmetric': bool,
-        'is_reflexive': bool,
-        'is_transitive': bool
-    }
+    
+    inverse_name =  StringField(required = True),
+    subject_type = ListField(ObjectIdField(),required = True),  # ObjectId's of Any Class
+    object_type = ListField(ObjectIdField(),required = True),  # ObjectId's of Any Class
+    subject_scope = ListField(default=[]),
+    object_scope = ListField(default=[]),
+    relation_type_scope= ListField(default=[]),
+    subject_cardinality= IntField(),
+    object_cardinality=IntField(),
+    subject_applicable_nodetype= StringField(),  # NODE_TYPE_CHOICES [default (GST)]
+    object_applicable_nodetype=StringField(),
+    slug= StringField(),
+    is_symmetric= BooleanField(),
+    is_reflexive= BooleanField(),
+    is_transitive= BooleanField()
 
-    required_fields = ['inverse_name', 'subject_type', 'object_type']
+
     use_dot_notation = True
-    default_values = {
-                        'subject_scope': [],
-                        'object_scope': [],
-                        'relation_type_scope': [],
-                    }
 
     # User-Defined Functions ##########
     @staticmethod

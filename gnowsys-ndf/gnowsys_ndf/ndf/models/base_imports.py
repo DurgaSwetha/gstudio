@@ -22,13 +22,19 @@ from celery import task
 from django.template.defaultfilters import slugify
 from django.core.cache import cache
 
-from django_mongokit import connection
-from django_mongokit import get_database
-from django_mongokit.document import DjangoDocument
+# from django_mongokit import connection
+# from django_mongokit import get_database
+# from django_mongokit.document import DjangoDocument
 from django.core.files.images import get_image_dimensions
 
-from mongokit import IS, OR
-from mongokit import INDEX_ASCENDING, INDEX_DESCENDING
+# from mongokit import IS, OR
+# from mongokit import INDEX_ASCENDING, INDEX_DESCENDING
+
+from mongoengine.connection import connect,get_db
+from mongoengine.fields import *
+from mongoengine import Document,DynamicDocument
+from mongoengine import *
+
 
 try:
     from bson import ObjectId
@@ -136,10 +142,10 @@ to_reduce_doc_requirement = u'storing_to_be_reduced_doc'
 indexed_word_list_requirement = u'storing_indexed_words'
 
 # CUSTOM DATA-TYPE DEFINITIONS
-STATUS_CHOICES_TU = IS(u'DRAFT', u'HIDDEN', u'PUBLISHED', u'DELETED', u'MODERATION')
+STATUS_CHOICES_TU = [u'DRAFT', u'HIDDEN', u'PUBLISHED', u'DELETED', u'MODERATION']
 STATUS_CHOICES = tuple(str(qtc) for qtc in STATUS_CHOICES_TU)
 
-QUIZ_TYPE_CHOICES_TU = IS(u'Short-Response', u'Single-Choice', u'Multiple-Choice')
+QUIZ_TYPE_CHOICES_TU = [u'Short-Response', u'Single-Choice', u'Multiple-Choice']
 QUIZ_TYPE_CHOICES = tuple(str(qtc) for qtc in QUIZ_TYPE_CHOICES_TU)
 
 # Designate a root folder for HashFS. If the folder does not exists already, it will be created.
@@ -149,4 +155,4 @@ gfs = HashFS(MEDIA_ROOT, depth=3, width=1, algorithm='sha256')
 # gfs: gstudio file system
 
 # DATABASE Variables
-db = get_database()
+db = get_db()

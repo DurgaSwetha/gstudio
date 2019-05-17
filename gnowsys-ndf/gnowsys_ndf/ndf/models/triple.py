@@ -3,29 +3,32 @@ from node import *
 from db_utils import get_model_name
 
 #  TRIPLE CLASS DEFINITIONS
-@connection.register
-class Triple(DjangoDocument):
+
+class Triple(DynamicDocument):
 
   objects = models.Manager()
 
+  
+  # structure = {
+  _type= StringField(),
+  name= StringField(required = True),
+  subject_scope=StringField(),
+  object_scope= StringField(),
+  subject= ObjectIdField(required = True),  # ObjectId's of GSystem Class
+  language=(StringField(), StringField()),  # e.g: ('en', 'English') or ['en', 'English']
+  status=StringField(choices=STATUS_CHOICES_TU)
+  # }
   collection_name = 'Triples'
-  structure = {
-    '_type': unicode,
-    'name': unicode,
-    'subject_scope': basestring,
-    'object_scope': basestring,
-    'subject': ObjectId,  # ObjectId's of GSystem Class
-    'language': (basestring, basestring),  # e.g: ('en', 'English') or ['en', 'English']
-    'status': STATUS_CHOICES_TU
+  meta = {
+    # required_fields = ['name', 'subject']
+    'allow_inheritance':True,
+    'use_dot_notation': True,
+    'use_autorefs' : True,
+    # default_values = {
   }
-
-  required_fields = ['name', 'subject']
-  use_dot_notation = True
-  use_autorefs = True
-  default_values = {
-                      'subject_scope': None,
-                      'object_scope': None
-                  }
+  #                     'subject_scope': None,
+  #                     'object_scope': None
+  #                 }
 
   @classmethod
   def get_triples_from_sub_type(cls, subject_id, gt_or_rt_name_or_id, status=None):
@@ -129,10 +132,11 @@ class Triple(DjangoDocument):
       attribute_object_value_for_name = attribute_object_value[:20]
       self.name = "%(subject_name)s -- %(attribute_type_name)s -- %(attribute_object_value_for_name)s" % locals()
       name_value = self.name
-
+      print name_value
       subject_type_list = at_node.subject_type
       subject_member_of_list = subject_document.member_of
-
+      print "subject type list",subject_type_list
+      print "subject_member_list",subject_member_of_list
       intersection = set(subject_member_of_list) & set(subject_type_list)
       if intersection:
         subject_system_flag = True

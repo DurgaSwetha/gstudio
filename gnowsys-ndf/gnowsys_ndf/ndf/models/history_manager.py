@@ -86,8 +86,10 @@ class HistoryManager():
         # here n := hash_level_num
         collection_hash_dirs = ""
         for pos in range(0, RCS_REPO_DIR_HASH_LEVEL):
+            print pos
             collection_hash_dirs += \
                 (document_object._id.__str__()[-2**pos] + "/")
+            print collection_hash_dirs
 
         file_path = \
             os.path.join(collection_dir, \
@@ -150,7 +152,8 @@ class HistoryManager():
         # from Filehive import Filehive
         # from Buddy import Buddy
         # Counter
-
+        print "inside cerate_or replace of history_manager"
+        print "docobject:",document_object,self
         # collection_list = ('MetaType', 'GSystemType', 'GSystem', 'AttributeType', 'GAttribute', 'RelationType', 'GRelation', 'Filehive', 'Buddy', 'Counter')
         collection_list = get_all_collection_child_names() 
         file_res = False    # True, if no error/exception occurred
@@ -208,7 +211,7 @@ class HistoryManager():
             # TODO: Throw/raise error having following message!
             # if document_object is None or
             # !isinstance(document_object, collection_list)
-
+            print "else"
             msg = " Following instance is either invalid or " \
             + "not matching given instances-type list " + str(collection_list) + ":-" \
             + "\n\tObjectId: " + document_object._id.__str__() \

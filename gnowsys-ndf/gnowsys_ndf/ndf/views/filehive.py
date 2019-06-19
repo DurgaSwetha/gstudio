@@ -32,13 +32,13 @@ def upload_form(request, group_id):
 
 
 def write_files(request, group_id, make_collection=False, unique_gs_per_file=True, **kwargs):
-
+	print "in write files"
 	user_id = request.user.id
 	try:
 		user_id = Author.extract_userid(request, **kwargs)
 	except Exception as e:
 		pass
-	# print "user_id: ", user_id
+	print "user_id: ", user_id
 
 	# author_obj = node_collection.one({'_type': u'Author', 'created_by': int(user_id)})
 	author_obj = Author.get_author_obj_from_name_or_id(user_id)
@@ -51,7 +51,7 @@ def write_files(request, group_id, make_collection=False, unique_gs_per_file=Tru
 	collection_set = []
 	uploaded_files = request.FILES.getlist('filehive', [])
 	name           = request.POST.get('name')
-
+	print "uploaded files:",uploaded_files
 	gs_obj_list    = []
 	for each_file in uploaded_files:
 

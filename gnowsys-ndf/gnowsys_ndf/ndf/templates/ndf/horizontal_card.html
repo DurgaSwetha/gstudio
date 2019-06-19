@@ -57,8 +57,11 @@
         </div>
     </a>
         <div class="card_section">
+            sdfdsfdsfsdf {{is_gstaff}}
             {% if not is_gstaff %}
+            aretert
             {% if request.user.is_authenticated %}
+                qrqwrqwr
                 {% include 'ndf/widget_enroll.html' with groupid=node.pk module_enrollment='True' %}
             {% endif %}
             {% endif %}

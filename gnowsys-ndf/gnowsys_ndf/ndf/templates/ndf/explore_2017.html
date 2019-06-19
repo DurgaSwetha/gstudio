@@ -7,6 +7,7 @@
 {% block body_content %}
 {% get_group_object as group_object %}
 {% check_is_gstaff group_id request.user as is_gstaff %}
+{{is_gstaff}}
 {% cast_to_node modules_sort_list as modules_node_sort_list %}
 
 		{% include 'ndf/explore_secondary_header.html' with modules_node_sort_list=modules_node_sort_list %}
@@ -24,6 +25,8 @@
 		{% if modules_is_cur %}
 			{% rewind_cursor all_modules as all_modules %}
 		{% endif %}
+		{{group_id}}
+		{{is_gstaff}}
 		{% include "ndf/lms_explore.html" with title=title modules_node_sort_list=modules_node_sort_list %}
 	{% endif %}
 {% endblock body_content %}

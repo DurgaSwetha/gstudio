@@ -9,7 +9,7 @@ from registration.backends.default.views import ActivationView
 from jsonrpc import jsonrpc_site
 
 # from gnowsys_ndf.ndf.forms import *
-from gnowsys_ndf.settings import GSTUDIO_SITE_NAME,GSTUDIO_USERNAME_SELECTION_WIDGET
+from gnowsys_ndf.settings import GSTUDIO_SITE_NAME,GSTUDIO_USERNAME_SELECTION_WIDGET, GSTUDIO_OER_GROUPS
 from gnowsys_ndf.ndf.views.email_registration import password_reset_email, password_reset_error, GstudioEmailRegistrationForm
 from gnowsys_ndf.ndf.forms import UserChangeform, UserResetform
 from gnowsys_ndf.ndf.views.home import homepage, landing_page
@@ -18,7 +18,7 @@ from gnowsys_ndf.ndf.views.custom_app_view import custom_app_view, custom_app_ne
 from gnowsys_ndf.ndf.views import rpc_resources
 if GSTUDIO_SITE_NAME.lower() == 'clix':
     login_template = 'registration/login_clix.html'
-    logout_template = "ndf/landing_page_clix.html"
+    logout_template = "ndf/landing_page_clix_oer.html"
 else:
     login_template = 'registration/login.html'
     logout_template = 'registration/logout.html'
@@ -216,8 +216,8 @@ urlpatterns = patterns('',
 
     # url(r'^accounts/login/$', auth_views.login ,{'template_name': login_template}, name='login'),
     url(r'^accounts/login/$', auth_views.login ,{'template_name': login_template, 'extra_context': {'USERNAME_SELECTION_WIDGET': GSTUDIO_USERNAME_SELECTION_WIDGET}}, name='login'),
-    url(r'^accounts/logout/$', auth_views.logout ,{'template_name': logout_template}, name='logout'),
-    url(r'^accounts/', include('registration_email.backends.default.urls')),
+    url(r'^accounts/logout/$', auth_views.logout ,{'template_name': logout_template }, name='logout'),
+    url(r'^accounts/', include('registration.backends.default.urls')),
 
    # --end of django-registration
 

@@ -714,7 +714,7 @@ def my_courses(request, group_id):
 @login_required
 def my_desk(request, group_id):
     from gnowsys_ndf.settings import GSTUDIO_WORKSPACE_INSTANCE
-
+    print "Author object:",group_id
     if str(request.user) == 'AnonymousUser':
         raise Http404("You don't have an authority for this page!")
 

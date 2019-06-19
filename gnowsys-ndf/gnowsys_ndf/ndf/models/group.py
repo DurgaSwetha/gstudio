@@ -15,8 +15,8 @@ class Group(GSystem):
         'disclosure_policy': basestring,     # Members of this group - disclosed or not
         'encryption_policy': basestring,     # Encryption - yes or no
         'agency_type': basestring,           # A choice field such as Pratner,Govt.Agency, NGO etc.
-        'group_admin': [int],		     # ObjectId of Author class
-        'moderation_level': int,              # range from 0 till any integer level
+        'group_admin': [int],		         # ObjectId of Author class
+        'moderation_level': int,             # range from 0 till any integer level
         'project_config': dict
     }
 
@@ -150,10 +150,12 @@ class Group(GSystem):
         """
 
         if (user.is_superuser) or (user.id == self.created_by) or (user.id in self.group_admin):
+            print "superuser:"
             return True
         else:
             auth_obj = node_collection.one({'_type': 'Author', 'created_by': user.id})
             if auth_obj and auth_obj.agency_type == 'Teacher':
+                print "with auth_obj"
                 return True
         return False
 

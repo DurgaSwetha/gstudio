@@ -106,7 +106,8 @@ def module_detail(request, group_id, node_id,title=""):
     detail of of selected module
     '''
     group_name, group_id = Group.get_group_name_id(group_id)
-
+    print "in module_detail and group id, title",group_id,title
+    print "node_id",node_id          
     module_obj = Node.get_node_by_id(ObjectId(node_id))
     context_variable = {
                         'group_id': group_id, 'groupid': group_id,
@@ -208,14 +209,18 @@ def module_detail(request, group_id, node_id,title=""):
     context_variable.update({'units_under_module': units_under_module})
 
     units_sort_list = get_attribute_value(node_id, 'items_sort_list')
-
+    from django.core.cache import cache
+    test = cache.get('5945db6e2c4796014abd1784attribute_valueitems_sort_list')
+    print "test:",test 
     if units_sort_list:
+        #print "from attribute:",units_sort_list
         context_variable.update({'units_sort_list': units_sort_list})
     else:
+        print "no items_sort_list"
         context_variable.update({'units_sort_list': list(units_under_module)})
 
     template = 'ndf/module_detail.html'
-
+    print "units of selected module", units_sort_list
     return render_to_response(
         template,
         context_variable,
@@ -225,6 +230,7 @@ def module_detail(request, group_id, node_id,title=""):
 def unit_order_list(request, group_id, node_id):
     response_dict = {"success": False}
     unit_id_list = request.POST.get('unit_list', [])
+    print "untlst:",unit_id_list
     try:
         items_sort_list_gattr_node = triple_collection.one({'_type': 'GAttribute', 'subject': ObjectId(node_id),
             'attribute_type': at_items_sort_list._id, 'status': u'PUBLISHED'})

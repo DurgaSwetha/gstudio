@@ -107,7 +107,7 @@ class CreateGroup(object):
         '''
         # getting the data into variables
         name = group_name
-
+        print "inside get_group_fields:",name,kwargs
         # to check if existing group is getting edited
         node_id = kwargs.get('node_id', None)
 
@@ -653,13 +653,15 @@ class CreateModeratedGroup(CreateSubGroup):
         # retrieves node_id. means it's edit operation of existing group.
         node_id = kwargs.get('node_id', None)
         # print "\n\n top_mod_groups_parent",top_mod_groups_parent
-
+        print "create_edit_moderated_group :", node_id
+        print "values:", top_mod_groups_parent,perform_checks
         # checking if group exists with same name
         if not self.is_group_exists(group_name) or node_id:
 
             # values will be taken from POST form fields
             group_obj = self.get_group_fields(group_name, node_id=node_id)
             group_obj.save()
+            print "Group node:", group_obj
             if perform_checks:
                 try:
                     if top_mod_groups_parent:
@@ -1434,6 +1436,7 @@ class GroupCreateEditHandler(View):
         Catering GET request of group's create/edit.
         Render's to create_group template.
         """
+        print "Entered into get method of GroupCreateEditHandler"
         try:
             group_id = ObjectId(group_id)
         except:
@@ -1446,11 +1449,11 @@ class GroupCreateEditHandler(View):
         node_edit_flag = request.GET.get('node_edit',False)
         if not isinstance(node_edit_flag, bool):
             node_edit_flag = eval(node_edit_flag)
-        # print "\n node_edit_flag ==== ",type(node_edit_flag)
+        
         partnergroup_flag = request.GET.get('partnergroup','')
         if partnergroup_flag:
             partnergroup_flag = eval(partnergroup_flag)
-
+        print "\n node_edit_flag ==== ",type(node_edit_flag), subgroup_flag, partnergroup_flag
         if action == "edit":  # to edit existing group
 
             group_obj = get_group_name_id(group_id, get_obj=True)
@@ -1555,6 +1558,7 @@ class GroupCreateEditHandler(View):
             mod_group = CreateModeratedGroup(request)
 
             # calling method to create new group
+            print "values passed into create_edit_moderated_group:", group_name,moderation_level,parent_group_id
             result = mod_group.create_edit_moderated_group(group_name, moderation_level, "ModeratingGroup", top_mod_groups_parent=parent_group_id, node_id=node_id)
 
             # print "=== result: ", result
@@ -1619,7 +1623,7 @@ class EventGroupCreateEditHandler(View):
         """
 
         print "inside get of EventGroupCreateEditHandler"
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         try:
             group_id = ObjectId(group_id)
         except:
@@ -1633,7 +1637,7 @@ class EventGroupCreateEditHandler(View):
         gst_module_name, gst_module_id = GSystemType.get_gst_name_id('Module')
         modules = GSystem.query_list('home', 'Module', request.user.id)
         # spl_group_type = request.GET.get('sg_type','')
-        # print "\n\n spl_group_type", spl_group_type
+        #print "\n\n spl_group_type", spl_group_type
         title = action + ' ' + spl_group_type
         print "values :",group_id,modules,spl_group_type
 
@@ -1678,7 +1682,7 @@ class EventGroupCreateEditHandler(View):
 
             # making list of group names (to check uniqueness of the group):
             nodes_list = [str(g_obj.name.strip().lower()) for g_obj in available_nodes]
-
+            print "node list :", nodes_list
             context_variables.update({'nodes_list': nodes_list})
 
         # In the case of need, we can simply replace:
@@ -1704,8 +1708,8 @@ class EventGroupCreateEditHandler(View):
         # course_node_id = request.POST.get('course_node_id', '')
         # check if group's editing policy is already 'EDITABLE_MODERATED' or
         # it was not and now it's changed to 'EDITABLE_MODERATED' or vice-versa.
-        import ipdb; ipdb.set_trace()
-
+        #import ipdb; ipdb.set_trace()
+        print "values :",group_name,node_id,edit_policy
         if (edit_policy == "EDITABLE_MODERATED") or (parent_group_obj.edit_policy == "EDITABLE_MODERATED"):
 
             moderation_level = request.POST.get('moderation_level', '')
@@ -3189,8 +3193,8 @@ def group_detail(request, group_id, node_id,title=""):
     context_variable.update({'modules_sort_list': modules_sort_list})
     context_variable.update({'title': 'courses'})
 
-    #template = 'ndf/group_detail.html'
-    template = 'ndf/index_oer.html'
+    template = 'ndf/group_detail.html'
+    #template = 'ndf/index_oer.html'
     #print "modules of selected group", modules_sort_list
     return render_to_response(
         template,

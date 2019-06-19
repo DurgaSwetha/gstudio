@@ -38,7 +38,8 @@ from gnowsys_ndf.ndf.views.notify import set_notif_val
 # from gnowsys_ndf.ndf.org2any import org2html
 # from gnowsys_ndf.ndf.models import Node, GSystemType, File, GRelation, STATUS_CHOICES, Triple, node_collection, triple_collection, gridfs_collection
 from gnowsys_ndf.ndf.models import Node, GSystemType, GRelation, STATUS_CHOICES, Triple, node_collection, triple_collection, gridfs_collection
-from gnowsys_ndf.ndf.views.methods import get_node_metadata, get_node_common_fields, create_gattribute, get_page, get_execution_time,set_all_urls,get_group_name_id, get_language_tuple  # , get_page
+from gnowsys_ndf.ndf.views.methods import get_node_metadata, get_node_common_fields, create_gattribute, get_page, get_execution_time,set_all_urls,get_language_tuple  # , get_page
+from gnowsys_ndf.ndf.views.es_queries import get_group_name_id
 from gnowsys_ndf.ndf.views.methods import node_thread_access, create_thread_for_node, create_grelation, delete_grelation
 from gnowsys_ndf.ndf.templatetags.ndf_tags import get_relation_value
 
@@ -750,15 +751,17 @@ def paged_file_objs(request, group_id, filetype, page_no):
             context_instance = RequestContext(request))
 
 
-@login_required
+# @login_required
 @get_execution_time
 def uploadDoc(request, group_id):
-
+    print "inside"
     try:
         group_id = ObjectId(group_id)
     except:
         group_name, group_id = get_group_name_id(group_id)
 
+    print "inside upload doc",group_name,group_id
+    
     if request.method == "GET":
         topic_gst = node_collection.one({'_type': 'GSystemType', 'name': 'Topic'})
         topic_nodes = node_collection.find({'member_of': {'$in': [topic_gst._id]}})

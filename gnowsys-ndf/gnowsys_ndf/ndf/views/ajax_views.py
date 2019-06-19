@@ -7015,10 +7015,11 @@ def get_interaction_widget(request, group_id):
             context_instance=RequestContext(request)) 
 
 def save_interactions(request, group_id):
+  print "inside save_interactions"
   group_obj = get_group_name_id(group_id, get_obj=True)
   node_id = request.POST.get('node_id', None)
   node  = node_collection.one({"_id":ObjectId(node_id)})
-
+  print "node_id",node_id
   thread_create_val = request.POST.get("thread_create",'')
 
   # print "\n\n help_info_page  === ", help_info_page

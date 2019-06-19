@@ -263,20 +263,39 @@ django.conf.locale.LANG_INFO = LANG_INFO
 # Override following variables in local_settings file:
 #
 # SMTP setting for sending mail (Using python default SMTP server)
-EMAIL_USE_TLS = False
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-DEFAULT_FROM_EMAIL = 'testing@example.com'
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = '127.0.0.1'
+# EMAIL_PORT = 1025
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_HOST_USER = ''
+# EMAIL_HOST_PASSWORD = ''
+#DEFAULT_FROM_EMAIL = 'testing@example.com'
+
+# Authentication related and Error reporting emails
+# EMAIL_USE_TLS = ""
+# ACCOUNT_ACTIVATION_DAYS = 2
+# #EMAIL_HOST = 'localhost'
+# EMAIL_HOST = 'localhost'
+# #DEFAULT_FROM_EMAIL = 'webmaster@clix.ss.org'
+# DEFAULT_FROM_EMAIL = 'gdswetha@gmail.com'
+# LOGIN_REDIRECT_URL = '/'
+# EMAIL_SUBJECT_PREFIX='[clix-ss-error-reporting]'
+# SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# EMAIL_PORT = ""
+# ADMINS = (
+#     "mrunal4888@gmail.com"
+# )
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 #
 # SMTP setting for sending mail (e.g: gmail SMTP server)
-# EMAIL_USE_TLS = True
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_HOST_USER = 'yourcompletegmailaddr'
-# EMAIL_HOST_PASSWORD = 'yourpassword'
-#
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'gdswetha@gmail.com'
+EMAIL_HOST_PASSWORD = 'inter15'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # The following email id and password for the email account will be used for sending/receiving SYNCDATA
 SYNCDATA_KEY_PUB = ""
 SYNCDATA_FROM_EMAIL_ID = ""
@@ -1037,6 +1056,33 @@ GSTUDIO_INSTITUTE_NAME = ''
 #
 # --- End of BUDDY Module ---
 
+GSTUDIO_ELASTIC_SEARCH_PASSWORD = ""
+
+# Elastic Search
+GSTUDIO_DOCUMENT_MAPPING = '/data'
+GSTUDIO_ELASTIC_SEARCH = True
+GSTUDIO_ELASTIC_SEARCH_PROTOCOL = 'http' # we can use http or https protocol
+GSTUDIO_ELASTIC_SEARCH_ALIAS = 'localhost'
+GSTUDIO_ELASTIC_SEARCH_SUPERUSER = ''
+GSTUDIO_ELASTIC_SEARCH_SUPERUSER_PASSWORD = ''
+GSTUDIO_ELASTIC_SEARCH_PORT = '9201'
+TESTING_VARIABLE_FOR_ES = False
+GSTUDIO_ELASTIC_SEARCH_IN_NODE_CLASS = True
+GSTUDIO_ELASTIC_SEARCH_IN_FILEHIVE_CLASS= True
+GSTUDIO_ELASTIC_SEARCH_IN_BENCHMARK_CLASS = True
+# --- End of Elastic Search
+
+GLITE_RCS_REPO_DIRNAME = "glite-rcs-repo"
+GLITE_RCS_REPO_DIR = os.path.join('/data/', RCS_REPO_DIRNAME)
+
+GSTUDIO_ELASTIC_SEARCH_INDEX = {
+ # "Filehives": ["Filehive"],
+  "Triples": ["Triple"],
+  # "Buddies": ["Buddy"],
+  # "Benchmarks": ["Benchmark"],
+   # "Nodes": ["Node"],
+  # "Counters": ["Counter"]
+}
 
 # # textb
 # import warnings

@@ -9,10 +9,10 @@ class BuddySession(object):
         sends selected buddy authors
         """
         if request.user.is_authenticated():
-        	# print "==========buddy", request
+        	print "==========buddy", request
 
-			# print request.session['buddies_id_name_dict']
-			# print request.session['buddies_id_list']
+			 print request.session['buddies_id_name_dict']
+	         print request.session['buddies_id_list']
 
 			request.buddies_id_name_dict= request.session['buddies_id_name_dict']
 			request.buddies_id_list 	= request.session['buddies_id_list']

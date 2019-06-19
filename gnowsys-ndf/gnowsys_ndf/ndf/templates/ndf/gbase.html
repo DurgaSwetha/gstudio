@@ -15,6 +15,17 @@
     <meta name="description" content="">
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width" />
 
+    <!-- Bootstrap Core CSS 
+    <link href="static/ndf/bower_components/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    Theme CSS 
+    <link rel="stylesheet" type="text/css" href="static/ndf/css/oer.css" >
+    <link rel="stylesheet" type="text/css" href="static/ndf/css/style.css">
+    
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic">
+ -->
+
     <link rel="stylesheet" type="text/css" href="/static/ndf/bower_components/foundation/css/normalize.css">
     <link rel="stylesheet" type="text/css" href="/static/ndf/bower_components/foundation-icon-fonts/foundation-icons.css">
    <link rel="stylesheet" type="text/css" href="/static/ndf/css/opensans-fonts.css">
@@ -61,12 +72,13 @@
 
 </head>
 <body>
-
+    {{request.user}}
+    {{request.author}}
+    {{user}}
     {% if site.BUDDY_LOGIN and user.is_authenticated and request.author.agency_type == 'Student' %}
         {% include "ndf/buddy.html" %}
     {% endif %}
-
-    {% include "ndf/header_clix.html" %}
+    {% include "ndf/header_oer_clix.html" %}
     {% block extended_header %}{% endblock %}
 
     {% block body_content %} {% endblock %}
@@ -147,7 +159,7 @@
     //   }); //document closes
 
       // after opening overlay node'sdescription should fetch from oid
-      $('.overlay-description-by-oid-caller').click(function(){
+          $('.overlay-description-by-oid-caller').click(function(){
         // alert(this.getAttribute('data-oid'));
         var oid = this.getAttribute('data-oid');
         document.getElementById('overlay-description-by-oid').setAttribute('caught-data-oid', oid);

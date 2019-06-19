@@ -129,10 +129,11 @@ class Triple(DjangoDocument):
       attribute_object_value_for_name = attribute_object_value[:20]
       self.name = "%(subject_name)s -- %(attribute_type_name)s -- %(attribute_object_value_for_name)s" % locals()
       name_value = self.name
-
+      print name_value
       subject_type_list = at_node.subject_type
       subject_member_of_list = subject_document.member_of
-
+      print "subject type list",subject_type_list
+      print "subject_member_list",subject_member_of_list
       intersection = set(subject_member_of_list) & set(subject_type_list)
       if intersection:
         subject_system_flag = True

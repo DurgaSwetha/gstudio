@@ -593,6 +593,7 @@ def get_attribute_value(node_id, attr_name, get_data_type=False, use_cache=True)
     cache_result = cache.get(cache_key)
 
     if (cache_key in cache) and not get_data_type and use_cache:
+    	#print "from cache in module detail:", cache_result
         return cache_result
 
     attr_val = ""
@@ -606,7 +607,7 @@ def get_attribute_value(node_id, attr_name, get_data_type=False, use_cache=True)
             node_attr = triple_collection.find_one({'_type': "GAttribute", "subject": ObjectId(node_id), 'attribute_type': gattr._id, 'status': u"PUBLISHED"})
     if node_attr:
         attr_val = node_attr.object_value
-        # print "\n here: ", attr_name, " : ", type(attr_val), " : ", node_id
+        print "\n here: ", attr_name, " : ", type(attr_val), " : ", attr_val
     if get_data_type:
         return {'value': attr_val, 'data_type': data_type}
     cache.set(cache_key, attr_val, 60 * 60)
@@ -1856,8 +1857,10 @@ def get_assesses_list(node):
 @register.assignment_tag
 def get_group_type(group_id, user):
     """This function checks for url's authenticity
-
+	
     """
+
+    print "in get_group_type function"
     try:
         # Splitting url-content based on backward-slashes
         split_content = group_id.strip().split("/")
@@ -2372,7 +2375,7 @@ def check_is_gstaff(groupid, user):
   cache_key = 'is_gstaff' + str(group_id) + str(user.id)
 
   if cache_key in cache:
-  	print "inside cache"
+  	print "inside cache:",cache_key
   	return cache.get(cache_key)
 
   groupid = groupid if groupid else 'home'
@@ -4222,7 +4225,7 @@ def get_module_enrollment_status(request, module_obj):
             data_dict.update(_user_enrolled(userid, module_obj.collection_set))
             # data_dict.update({userid : all(userid in groupobj.author_set for ind, groupobj in module_obj.collection_dict.items())})
             data_dict.update({'full_enrolled': all(data_dict.values())})
-        # print "\n data: ", data_dict
+        print "\n data: ", data_dict
         return data_dict
     return _user_enrolled(request.user.pk, module_obj.collection_set)
     # return {request.user.pk : user_enrolled, 'full_enrolled': user_enrolled}

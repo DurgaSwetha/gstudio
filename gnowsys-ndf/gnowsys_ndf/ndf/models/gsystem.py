@@ -75,7 +75,7 @@ class GSystem(Node):
                                     '_type': 'GSystem',
                                     'if_file.original.id': existing_fh_obj._id
                                 })
-
+            print kwargs
             if kwargs.has_key('unique_gs_per_file') and kwargs['unique_gs_per_file']:
 
                 if existing_file_gs:

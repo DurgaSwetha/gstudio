@@ -27,26 +27,73 @@ from gnowsys_ndf.settings import GSTUDIO_SITE_NAME, GSTUDIO_NO_OF_OBJS_PP, GSTUD
 from gnowsys_ndf.ndf.models import Node, Group, GSystemType,  AttributeType, RelationType
 from gnowsys_ndf.ndf.models import node_collection, triple_collection
 from gnowsys_ndf.ndf.views.methods import get_execution_time, get_language_tuple, create_gattribute, delete_gattribute
-from gnowsys_ndf.ndf.templatetags.ndf_tags import check_is_gstaff, get_attribute_value, cast_to_node
+from gnowsys_ndf.ndf.templatetags.ndf_tags import check_is_gstaff, cast_to_node
+
+from gnowsys_ndf.ndf.views.es_queries import *
+
 # from gnowsys_ndf.ndf.views.methods import get_group_name_id
 # from gnowsys_ndf.ndf.views.methods import get_node_common_fields, parse_template_data, get_execution_time, delete_node, replicate_resource
 
 
-gst_course = node_collection.one({'_type': "GSystemType", 'name': "Course"})
-gst_basecoursegroup = node_collection.one({'_type': "GSystemType", 'name': "BaseCourseGroup"})
-ce_gst = node_collection.one({'_type': "GSystemType", 'name': "CourseEventGroup"})
-announced_unit_gst = node_collection.one({'_type': "GSystemType", 'name': "announced_unit"})
-gst_acourse = node_collection.one({'_type': "GSystemType", 'name': "Announced Course"})
-gst_group = node_collection.one({'_type': "GSystemType", 'name': "Group"})
-group_id = node_collection.one({'_type': "Group", 'name': "home"})._id
-gst_module_name, gst_module_id = GSystemType.get_gst_name_id('Module')
-gst_base_unit_name, gst_base_unit_id = GSystemType.get_gst_name_id('base_unit')
-at_items_sort_list = node_collection.one({'_type': "AttributeType", 'name': "items_sort_list"})
+# gst_course = node_collection.one({'_type': "GSystemType", 'name': "Course"})
+# gst_basecoursegroup = node_collection.one({'_type': "GSystemType", 'name': "BaseCourseGroup"})
+# ce_gst = node_collection.one({'_type': "GSystemType", 'name': "CourseEventGroup"})
+# announced_unit_gst = node_collection.one({'_type': "GSystemType", 'name': "announced_unit"})
+# gst_acourse = node_collection.one({'_type': "GSystemType", 'name': "Announced Course"})
+# gst_group = node_collection.one({'_type': "GSystemType", 'name': "Group"})
+# group_id = node_collection.one({'_type': "Group", 'name': "home"})._id
+
+gst_module_name, gst_module_id = get_gst_name_id('Module')
+gst_base_unit_name, gst_base_unit_id = get_gst_name_id('base_unit')
+
+
+from gnowsys_ndf.ndf.gstudio_es.es import *
+##############################################################################
+print "elasticsearch client",es
+index = 'nodes'
+doc_type = 'node'
+
+q= eval("Q('bool', must=[Q('match', type = 'AttributeType'), Q('match',name='items_sort_list')])")
+s1 = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+at_items_sort_list = s1[0]
+
+
+# GST_FILE = node_collection.one({'_type':'GSystemType', 'name': "File"})
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='Course')])")
+gst_course = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='BaseCourseGroup')])")
+gst_basecoursegroup = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='CourseEventGroup')])")
+ce_gst = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+# GST_IMAGE = node_collection.one({'_type':'GSystemType', 'name': GAPPS[3]})
+
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='announced_unit')])")
+announced_unit_gst = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+# GST_VIDEO = node_collection.one({'_type':'GSystemType', 'name': GAPPS[4]})
+# e_library_GST = node_collection.one({'_type':'GSystemType', 'name': 'E-Library'})
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='Announced Course')])")
+gst_acourse = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+q= eval("Q('bool', must=[Q('match', type = 'GSystemType'), Q('match',name='Group')])")
+gst_group = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+# pandora_video_st = node_collection.one({'_type':'GSystemType', 'name': 'Pandora_video'})
+
+q= eval("Q('bool', must=[Q('match', type = 'Group'), Q('match',name='home')])")
+home_nd = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+print "home:",home_nd[0].id
+group_id = home_nd[0].id
+
 
 @get_execution_time
 def explore(request):
+    print "in explore"
     return HttpResponseRedirect(reverse('explore_courses', kwargs={}))
-
+    print "post redirect to explore_courses in explore"
     title = 'explore'
 
     context_variable = {'title': title, 'group_id': group_id, 'groupid': group_id}
@@ -119,7 +166,7 @@ def explore_groups(request,page_no=1):
                         }
                     ],
              'member_of': {'$in': [gst_group._id],
-             '$nin': [gst_course._id, gst_basecoursegroup._id, ce_gst._id, gst_course._id, gst_base_unit_id]},
+             '$nin': [gst_course.id, gst_basecoursegroup.id, ce_gst.id, gst_course.id, gst_base_unit_id]},
             }
 
     if gstaff_access:
@@ -227,13 +274,21 @@ def explore_courses(request):
 
     # this will be announced tab
     title = 'courses'
+    print("======================================")
+    print group_id
+    print("---------------------------------")
     context_variable = {
                         'title': title, 
                         'group_id': group_id, 'groupid': group_id,
                         'modules_is_cur': True,
                     }
     modules_sort_list = get_attribute_value(group_id, 'items_sort_list')
-    all_modules = node_collection.find({'member_of': gst_module_id ,'status':'PUBLISHED'}).sort('last_update', -1)
+    print "module sort list:",modules_sort_list
+    # all_modules = node_collection.find({'member_of': gst_module_id ,'status':'PUBLISHED'}).sort('last_update', -1)
+    
+    q= eval("Q('bool', must=[Q('match', member_of = str(gst_module_id)), Q('match',status='PUBLISHED')])")
+    all_modules = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
     if modules_sort_list:
         context_variable.update({'modules_sort_list': modules_sort_list})
     else:
@@ -242,9 +297,12 @@ def explore_courses(request):
         # context_variable.update({'modules_is_cur': False})
         # modules_node_sort_list = cast_to_node(modules_sort_list)
 
-    all_modules.rewind()
+    # all_modules.rewind()
+    
     module_unit_ids = [val for each_module in all_modules for val in each_module.collection_set ]
-
+    
+    print "in explore_courses", module_unit_ids,"\n"
+    print group_id
     primary_lang_tuple = get_language_tuple(GSTUDIO_PRIMARY_COURSE_LANGUAGE)
 
     '''
@@ -269,48 +327,62 @@ def explore_courses(request):
                 executing condition C then do not display factory Groups.
 
     '''
-    base_unit_cur = node_collection.find({
-                                            '$or': [
-                                                {
-                                                    '$and': [
-                                                                {'member_of': ce_gst._id},
-                                                                {'status':'PUBLISHED'},
-                                                                {'$or':
-                                                                    [
-                                                                        {'created_by': request.user.id},
-                                                                        {'group_admin': request.user.id},
-                                                                        {'author_set': request.user.id},
-                                                                        {
-                                                                            '$and': [
-                                                                                {'group_type': 'PUBLIC'},
-                                                                                {'language': primary_lang_tuple},
-                                                                            ]
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ]
-                                                },
-                                                {
-                                                    '$and': [
-                                                                {'member_of': announced_unit_gst._id},
-                                                                {'status':'PUBLISHED'},
-                                                                {'$or':
-                                                                    [
-                                                                        {'created_by': request.user.id},
-                                                                        {'group_admin': request.user.id},
-                                                                        {'author_set': request.user.id},
-                                                                        {'group_type': 'PUBLIC'}
-                                                                    ]
-                                                                }
-                                                            ]
-                                                }
-                                            ],
-                                            '_type': 'Group',
-                                            'name': {'$nin': GSTUDIO_DEFAULT_GROUPS_LIST},
-                                            '_id': {'$nin': module_unit_ids},
-                                              }).sort('last_update', -1)
-    # base_unit_page_cur = paginator.Paginator(base_unit_cur, page_no, GSTUDIO_NO_OF_OBJS_PP)
 
+    q1 = Q('bool',must = [Q('match',member_of = str(ce_gst[0].id)),Q('match',status = 'PUBLISHED'), Q('bool',should = [Q('match',created_by = request.user.id), \
+Q('match',group_admin = request.user.id),Q('match',author_set = request.user.id),Q('bool',must = [Q('match',group_type = 'PUBLIC'),Q('match',language = primary_lang_tuple)])])],minimum_should_match = 1)
+
+    q2 = Q('bool',must = [Q('match',member_of = str(announced_unit_gst[0].id)),Q('match',status = 'PUBLISHED'), Q('bool',should = [Q('match',created_by = request.user.id), \
+Q('match',group_admin = request.user.id),Q('match',author_set = request.user.id),Q('bool',must = [Q('match',group_type = 'PUBLIC'),Q('match',language = primary_lang_tuple)])])],minimum_should_match = 1)
+
+    q = Q('bool',must = [q1,q2,Q('match',type = 'Group'),Q('bool',must_not = [Q('terms',name = GSTUDIO_DEFAULT_GROUPS_LIST)]),Q('bool',must_not = [Q('terms',id = module_unit_ids)])])
+    print "q",q
+    base_unit_cur = (Search(using=es,index = index,doc_type=doc_type).query(q)).execute()
+
+
+    # base_unit_cur = node_collection.find({
+    #                                         '$or': [
+    #                                             {
+    #                                                 '$and': [
+    #                                                             {'member_of': ce_gst._id},
+    #                                                             {'status':'PUBLISHED'},
+    #                                                             {'$or':
+    #                                                                 [
+    #                                                                     {'created_by': request.user.id},
+    #                                                                     {'group_admin': request.user.id},
+    #                                                                     {'author_set': request.user.id},
+    #                                                                     {
+    #                                                                         '$and': [
+    #                                                                             {'group_type': 'PUBLIC'},
+    #                                                                             {'language': primary_lang_tuple},
+    #                                                                         ]
+    #                                                                     }
+    #                                                                 ]
+    #                                                             }
+    #                                                         ]
+    #                                             },
+    #                                             {
+    #                                                 '$and': [
+    #                                                             {'member_of': announced_unit_gst._id},
+    #                                                             {'status':'PUBLISHED'},
+    #                                                             {'$or':
+    #                                                                 [
+    #                                                                     {'created_by': request.user.id},
+    #                                                                     {'group_admin': request.user.id},
+    #                                                                     {'author_set': request.user.id},
+    #                                                                     {'group_type': 'PUBLIC'}
+    #                                                                 ]
+    #                                                             }
+    #                                                         ]
+    #                                             }
+    #                                         ],
+    #                                         '_type': 'Group',
+    #                                         'name': {'$nin': GSTUDIO_DEFAULT_GROUPS_LIST},
+    #                                         '_id': {'$nin': module_unit_ids},
+    #                                           }).sort('last_update', -1)
+    # # base_unit_page_cur = paginator.Paginator(base_unit_cur, page_no, GSTUDIO_NO_OF_OBJS_PP)
+    print "llist",base_unit_cur
+    for eachunit in base_unit_cur:
+        print eachunit.type,str(eachunit.name)
     context_variable.update({'all_modules': all_modules, 'units_cur': base_unit_cur})
     return render_to_response(
         # "ndf/explore.html", changed as per new Clix UI

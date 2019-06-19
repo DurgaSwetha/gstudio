@@ -85,7 +85,7 @@
           <div clas="discussion-title row " >
              <div class="discussion-title-username">
               <a  href="{% url 'dashboard' each_reply.userid %}" style="color:#ADABAB !important" title=" {{ each_reply.username }}">
-                {{ each_reply.username }}
+                {{ each_reply.contributors }}
               </a>
                 <small style="float:right;color:#999999">{{ each_reply.last_update }}</small>
             </div>
@@ -341,6 +341,7 @@
       //     // console.log(all_files.files[i]);
       //   }
       //   docs_list.append('upload_cnt', docs_count)
+      print "docs_list:",docs_list
         docs_list.append('csrfmiddlewaretoken','{{csrf_token}}');
         docs_list.append('reply_text_content', replyContent)
         docs_list.append('prior_node_id', priorNodeId)

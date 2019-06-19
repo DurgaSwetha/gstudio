@@ -19,11 +19,13 @@ except ImportError:  # old pymongo
 from gnowsys_ndf.settings import GAPPS, GSTUDIO_SITE_LANDING_PAGE, GSTUDIO_SITE_NAME, GSTUDIO_SITE_LANDING_TEMPLATE, GSTUDIO_OER_GROUPS
 from gnowsys_ndf.ndf.models import GSystemType, Node
 from gnowsys_ndf.ndf.models import node_collection
+from gnowsys_ndf.ndf.gstudio_es.es import *
+from gnowsys_ndf.ndf.gstudio_es.paginator import Paginator ,EmptyPage, PageNotAnInteger
 
 ###################################################
 #   V I E W S   D E F I N E D   F O R   H O M E   #
 ###################################################
-
+index = 'nodes'
 
 @get_execution_time
 def homepage(request, group_id):
@@ -35,8 +37,16 @@ def homepage(request, group_id):
         # auth_gst = node_collection.one({'_type': u'GSystemType', 'name': u'Author'})
         # if auth_obj:
         #     auth_type = auth_obj._id
-        auth = node_collection.one({'_type': u"Author", 'created_by': int(request.user.id)})
+        # auth = node_collection.one({'_type': u"Author", 'created_by': int(request.user.id)})
+        print "user name:",request.user.id
 
+        q = eval("Q('bool', must=[Q('match', type = 'Author'), Q('match',created_by=int(request.user.id))])")
+
+        # q = Q('match',name=dict(query='File',type='phrase'))
+        auth1 = Search(using=es, index=index,doc_type="node").query(q)
+        auth2 = auth1.execute()
+        print "auth1:",auth2
+        auth = auth2[0]
         # This will create user document in Author collection to behave user as a group.
         '''
         The code below is commented whose purpose was to create Author
@@ -44,7 +54,8 @@ def homepage(request, group_id):
         This functionality is implemented by using django-registration
         signal 'user_activated'. (See 'def create_auth_grp' in signals.py)
         
-        if auth is None:
+        if auth is None:        if auth is None:
+
             auth = node_collection.collection.Author()
             auth.name = unicode(request.user)
             auth.email = unicode(request.user.email)
@@ -98,8 +109,14 @@ def landing_page(request):
     '''
     Method to render landing page after checking variables in local_settings/settings file.
     '''
-    group_id = node_collection.one({'$and':[{'_type': u'Group'}, {'name': u'home'}]})._id
-    
+    # group_id = node_collection.one({'$and':[{'_type': u'Group'}, {'name': u'home'}]})._id
+    q = eval("Q('bool', must=[Q('match', type = 'Group'), Q('match',name='home')])")
+
+    # q = Q('match',name=dict(query='File',type='phrase'))
+    grp_id1 = Search(using=es, index=index,doc_type="node").query(q)
+    grp_id2 = grp_id1.execute()
+    print "response:",grp_id2
+    group_id = grp_id2[0].id
     print GSTUDIO_SITE_NAME, GSTUDIO_SITE_LANDING_PAGE, GSTUDIO_SITE_LANDING_TEMPLATE
 
     if (GSTUDIO_SITE_LANDING_PAGE == "home") and (GSTUDIO_SITE_NAME == "NROER"):
@@ -125,13 +142,13 @@ def landing_page(request):
                                         },
                                         context_instance=RequestContext(request)
                                     )
-            # elif request.user.id:
-            #     print "post loggin in"
-            #     return HttpResponseRedirect( reverse('my_desk', kwargs={"group_id": request.user.id}) )        
+            elif request.user.id:
+                print "post loggin in"
+                return HttpResponseRedirect( reverse('my_desk', kwargs={"group_id": request.user.id}) )        
             else:
                 #print "Not yet logged in"
                 group_id = node_collection.one({'_type': "Group", 'name': "home"})._id
-                print request.path
+                print request.path, request.META
                 return render_to_response(
                                         GSTUDIO_SITE_LANDING_TEMPLATE,
                                         {
@@ -197,13 +214,26 @@ def landing_page(request):
 @get_execution_time
 def help_page_view(request,page_name):
     # page_obj = Node.get_node_by_id(page_id)
-    help_grp = node_collection.one({'$and':[{'_type': u'Group'}, {'name': u'help'}]})
+    # help_grp = node_collection.one({'$and':[{'_type': u'Group'}, {'name': u'help'}]})
     
-    page_obj = node_collection.one({"name":unicode(page_name),"group_set":ObjectId(help_grp._id)})
+    # page_obj = node_collection.one({"name":unicode(page_name),"group_set":ObjectId(help_grp._id)})
+    print "in help page click"
+    q = eval("Q('bool', must=[Q('match', type = 'Group'), Q('match',name='help')])")
+
+    # q = Q('match',name=dict(query='File',type='phrase'))
+    help_grp1 = Search(using=es, index=index,doc_type="node").query(q)
+    help_grp2 = help_grp1.execute()
+    help_grp = help_grp2[0]
+
+    q = eval("Q('bool', must=[Q('match',name=page_name),Q('match', group_set = help_grp.id)])")
+    page_obj2 = page_obj1.execute()
+    page_obj = page_obj2[0]
+
+
     return render_to_response(
                                         "ndf/help_page.html",
                                         {
-                                            "group_id": page_obj._id,
+                                            "group_id": page_obj.id,
                                             'title': 'Help Page',
                                             'page_obj':page_obj
                                         },

@@ -36,16 +36,20 @@ def unit_create_edit(request, group_id, unit_group_id=None):
     '''
 
     parent_group_name, parent_group_id = Group.get_group_name_id(group_id)
+    print "inside unit_create_edit", parent_group_name,parent_group_id
+    print "request path", request.method
     unit_node = None
     if request.method == "GET":
         unit_node = node_collection.one({'_id': ObjectId(unit_group_id)})
         template = "ndf/create_unit.html"
         all_groups = node_collection.find({'_type': "Group"},{"name":1})
         all_groups_names = [str(each_group.name) for each_group in all_groups]
+        print "group names :", all_groups_names
         modules = GSystem.query_list('home', 'Module', request.user.id)
 
         context_variables = {'group_id': parent_group_id,'groupid': parent_group_id, 'all_groups_names': all_groups_names, 
         'modules': modules}
+
         if unit_node:
             # get all modules which are parent's of this unit/group
             parent_modules = node_collection.find({

@@ -286,8 +286,7 @@ def build_rcs(node, collection_name):
                 global RESTORE_USER_DATA
                 if RESTORE_USER_DATA:
                     if "contributors" in node:
-                        GROUP_CONTRIBUTORS.extend(node.contributors)
-            except Exception as no_contributors_err:
+                        GROUP_CONTRIBUTORS.extend(node.contributors)                                                                                                                                                                                                                                                                                                                                   except Exception as no_contributors_err:
                 log_file.write("\n Error while fetching contributors " + str(no_contributors_err) +\
                  " for: " + str(node._id) + " with contributors: " + str(node.contributors))
                 pass
@@ -534,6 +533,7 @@ def get_counter_ids(group_id):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        print "inside group_export Command"
         global SCHEMA_MAP_PATH
         global DUMP_PATH
         global ROOT_DUMP_NODE_ID

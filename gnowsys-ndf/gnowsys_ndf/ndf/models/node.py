@@ -1,5 +1,8 @@
 from base_imports import *
 from history_manager import HistoryManager
+from gnowsys_ndf.ndf.gstudio_es.es import *
+from gnowsys_ndf.settings import GSTUDIO_ELASTIC_SEARCH,GSTUDIO_ELASTIC_SEARCH_IN_NODE_CLASS,GSTUDIO_SITE_NAME
+#from gnowsys_ndf.ndf.models.models_utils import NodeJSONEncoder,CustomNodeJSONEncoder
 
 @connection.register
 class Node(DjangoDocument):
@@ -194,7 +197,7 @@ class Node(DjangoDocument):
     }
 
     use_dot_notation = True
-
+    index = 'nodes'
 
     def add_in_group_set(self, group_id):
         if group_id not in self.group_set:
@@ -213,6 +216,7 @@ class Node(DjangoDocument):
 
         user_id = kwargs.get('created_by', None)
         # dict to sum both dicts, kwargs and request.POST
+        print "inside fill_node_values of node.py"
         values_dict = {}
         if request:
             if request.POST:
@@ -263,8 +267,16 @@ class Node(DjangoDocument):
             Takes ObjectId or objectId as string as arg
                 and return object
         '''
-        if node_id and (isinstance(node_id, ObjectId) or ObjectId.is_valid(node_id)):
-            return node_collection.one({'_id': ObjectId(node_id)})
+        print type(node_id)
+        if node_id:
+            q = eval("Q('match', id = str(node_id))")
+
+            # q = Q('match',name=dict(query='File',type='phrase'))
+            s1 = Search(using=es, index='nodes',doc_type="node").query(q)
+            s2 = s1.execute()
+            return s2[0]
+
+            # return node_collection.one({'_id': ObjectId(node_id)})
         else:
             # raise ValueError('No object found with id: ' + str(node_id))
             return None
@@ -275,12 +287,18 @@ class Node(DjangoDocument):
             Takes list of ObjectIds or objectIds as string as arg
                 and return list of object
         '''
-        try:
-            node_id_list = map(ObjectId, node_id_list)
-        except:
-            node_id_list = [ObjectId(nid) for nid in node_id_list if nid]
+        # try:
+        #     node_id_list = map(ObjectId, node_id_list)
+        # except:
+        #     node_id_list = [ObjectId(nid) for nid in node_id_list if nid]
         if node_id_list:
-            return node_collection.find({'_id': {'$in': node_id_list}})
+            q = eval("Q('terms', id = node_id_list)")
+            print q
+            # q = Q('match',name=dict(query='File',type='phrase'))
+            s1 = Search(using=es, index='nodes',doc_type="node").query(q)
+            s2 = s1.execute()
+            return s2
+            # return node_collection.find({'_id': {'$in': node_id_list}})
         else:
             return None
 
@@ -528,7 +546,8 @@ class Node(DjangoDocument):
         return self.__unicode__()
 
     def save(self, *args, **kwargs):
-	if "is_changed" in kwargs:
+	    
+        if "is_changed" in kwargs:
             if not kwargs["is_changed"]:
                 #print "\n ", self.name, "(", self._id, ") -- Nothing has changed !\n\n"
                 return
@@ -537,7 +556,6 @@ class Node(DjangoDocument):
 
         if not "_id" in self:
             is_new = True               # It's a new document, hence yet no ID!"
-
             # On save, set "created_at" to current date
             self.created_at = datetime.datetime.today()
 
@@ -628,7 +646,7 @@ class Node(DjangoDocument):
                                                     self.created_by,
                                                     self.last_update or self.created_at
                                                 )
-            # print 'buddy_contributors : ', buddy_contributors
+            # print 'buddy_contributors : ', buddy_contributto_reduce_doc_requirementors
 
             if buddy_contributors:
                 for each_bcontrib in buddy_contributors:
@@ -677,13 +695,15 @@ class Node(DjangoDocument):
         if is_new:
             # Create history-version-file
             try:
+                print "befr create method"
                 if history_manager.create_or_replace_json_file(self):
                     fp = history_manager.get_file_path(self)
                     user_list = User.objects.filter(pk=self.created_by)
                     user = user_list[0].username if user_list else 'user'
                     # user = User.objects.get(pk=self.created_by).username
-                    message = "This document (" + self.name + ") is created by " + user + " on " + self.created_at.strftime("%d %B %Y")
-                    rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
+                    if self.created_at:
+                        message = "This document (" + self.name + ") is created by " + user + " on " + self.created_at.strftime("%d %B %Y")
+                        rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
             except Exception as err:
                 print "\n DocumentError: This document (", self._id, ":", self.name, ") can't be created!!!\n"
                 node_collection.collection.remove({'_id': self._id})
@@ -702,8 +722,9 @@ class Node(DjangoDocument):
                         # user = User.objects.get(pk=self.created_by).username
                         user_list = User.objects.filter(pk=self.created_by)
                         user = user_list[0].username if user_list else 'user'
-                        message = "This document (" + self.name + ") is re-created by " + user + " on " + self.created_at.strftime("%d %B %Y")
-                        rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
+                        if self.created_at:
+                            message = "This document (" + self.name + ") is re-created by " + user + " on " + self.created_at.strftime("%d %B %Y")
+                            rcs_obj.checkin(fp, 1, message.encode('utf-8'), "-i")
 
                 except Exception as err:
                     print "\n DocumentError: This document (", self._id, ":", self.name, ") can't be re-created!!!\n"
@@ -727,6 +748,11 @@ class Node(DjangoDocument):
             # gets the last version no.
             rcsno = history_manager.get_current_version(self)
             node_collection.collection.update({'_id':self._id}, {'$set': {'snapshot'+"."+str(kwargs['groupid']):rcsno }}, upsert=False, multi=True)
+
+     ########################## ES ##################################
+        if GSTUDIO_ELASTIC_SEARCH_IN_NODE_CLASS == True:
+            print "inside elastic search save"
+            esearch.save_to_es(self)
 
 
     # User-Defined Functions
@@ -993,11 +1019,13 @@ class Node(DjangoDocument):
 
     @staticmethod
     def get_names_list_from_obj_id_list(obj_ids_list, node_type):
-        obj_ids_list = map(ObjectId, obj_ids_list)
+        obj_ids_list = map(ObjecQtId, obj_ids_list)
+        print obj_ids_list
         nodes_cur = node_collection.find({
                                             '_type': node_type,
                                             '_id': {'$in': obj_ids_list}
                                         }, {'name': 1})
+        print nodes_cur.count()
         result_list = [node['name'] for node in nodes_cur]
         return result_list
 

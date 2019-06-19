@@ -59,7 +59,15 @@ class Command(BaseCommand):
                 print "\n\nExporting CSV for :", each_group_obj._id, "\n"
                 pass
             csv_created_count += export_group_analytics(each_group_obj, assessment_and_quiz_data)
+        # print "Enter 'group name(case sensitive)' OR 'id': "
+        # group_name_or_id = raw_input()
+        # group_obj = Group.get_group_name_id(group_name_or_id, get_obj=True)
 
+        # if not group_obj:
+        #      raise ValueError('\nSorry. Request could not be visited. \
+        #          \nGroup/Course, matching argument entered "' + group_name_or_id + '" does not exists!!')
+
+        # export_group_analytics(group_obj,False)
         print "RESULT OF CSV EXPORT:\n\t- CREATED: %d\n\t- NOT CREATED: %d"%(csv_created_count, (all_course_groups_count - csv_created_count))
         print "=" * 100
 
@@ -80,7 +88,7 @@ def export_group_analytics(group_obj, assessment_and_quiz_data):
     # because we do wanted to gather all data irrespective of student enrollment.
     group_users = Counter.get_group_counters(group_obj._id).distinct('user_id')
     # group_users is a list of integer user ids
-    # print group_users
+    #print group_users
 
     # CSV file name-convention: schoolcode-course-name-datetimestamp.csv
     try:
@@ -92,7 +100,7 @@ def export_group_analytics(group_obj, assessment_and_quiz_data):
     # dt: date time
     # e.g: '21-November-2016-19h-08m-10s'
     # dt = "{:%d-%B-%Y-%Hh-%Mm-%Ss}".format(datetime.datetime.now())
-    dt = "{:%Y%m%d-%Hh%Mm}".format(datetime.datetime.now())
+    dt = "{:%Y%m%d-%Hh%Mm}".format(datetime.datetime.now())m
 
     file_name = GSTUDIO_INSTITUTE_ID_SECONDARY + '-' + GSTUDIO_INSTITUTE_ID + '-' + group_name + '-' + dt + '.csv'
 
@@ -110,7 +118,7 @@ def export_group_analytics(group_obj, assessment_and_quiz_data):
     column_keys_dict_addons = {}  
 
     all_activities_cur = Node.get_tree_nodes(group_obj, field_name='collection_set', level=1, get_obj=True)
-    # print all_activities_cur.count()
+    #print all_activities_cur.count()
     if all_activities_cur:
         for each_act in all_activities_cur:
             column_key_name = each_act['altnames'] if (each_act['altnames'] and each_act['altnames'].strip()) else each_act['name']
@@ -120,7 +128,7 @@ def export_group_analytics(group_obj, assessment_and_quiz_data):
             column_keys_dict_addons[column_key_name] = each_act['_id']
                 # column_keys_dict.update({column_key_name: 0})
             # each_row_dict[column_key_name] = analytics_data["counter_obj"]["visited_nodes"].get(unicode(each_act._id), 0)
-        # print column_keys_list_addons
+        print column_keys_list_addons
 
     # FLAGS:
     header_written = False
@@ -142,7 +150,7 @@ def export_group_analytics(group_obj, assessment_and_quiz_data):
                 print "\n!! Exception in getting triples values for user (%d): %s"%(each_user, e)
                 pass
 
-            print index, "] Group User ID: ", each_user
+            print "[",index, "] Group User ID: ", each_user
 
             each_row_dict = column_keys_dict.copy()    
             each_row_dict['server_id'] = GSTUDIO_INSTITUTE_ID

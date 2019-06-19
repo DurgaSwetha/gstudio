@@ -27,6 +27,11 @@ from django_mongokit import get_database
 from django_mongokit.document import DjangoDocument
 from django.core.files.images import get_image_dimensions
 
+# from mongoengine import connection
+# from mongoengine import document
+# from mongoengine import get_database
+
+
 from mongokit import IS, OR
 from mongokit import INDEX_ASCENDING, INDEX_DESCENDING
 

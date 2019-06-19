@@ -57,7 +57,7 @@ def activity_details(username):
         print "\nTotal activity-player visits: {0}".format(all_visits.count())
         
         for ind, each_visit in enumerate(all_visits):
-            # print each_visit
+            print each_visit
             row_dict = {'Unit' : 'NA','Lesson' : 'NA', 'Activity' : 'NA', 'Language' : 'NA', 'VisitedOn' : 'NA', 'OutTime' : 'NA', 'OutAction' : 'NA','TimeSpentInSeconds' : 'NA', 'Buddies' : 'NA'}
             unit_name = 'NA'
             activity_name = 'NA'
@@ -95,17 +95,19 @@ def activity_details(username):
                         'Activity': slugify(activity_name)})
 
                     
-                    # print "\n {0}. Unit: ".format(ind), unit_name
-                    # print " Lesson Name: ", lesson_name
-                    # print " Activity Name ({0}): {1}".format(activity_node._id, activity_disp_name)
-                    # print " Visited On: {0}".format(visited_on)
-                    # print " Language: ", locale
+                    print "\n {0}. Unit: ".format(ind), unit_name
+                    print " Lesson Name: ", lesson_name
+                    print " Activity Name ({0}): {1}".format(activity_node._id, activity_name)
+                    print " Visited On: {0}".format(visited_on)
+                    print " Language: ", locale
 
                     nav_out_action_cur = benchmark_collection.find({'last_update': {'$gte': each_visit['last_update']}, 
                         '_id': {'$ne': each_visit['_id']}, 'user': username, 'session_key': each_visit['session_key'],
                         'calling_url': {'$regex': activity_out_regex_pattern, '$options': 'i' }},timeout=False).sort('last_update', 1)
                     if nav_out_action_cur.count():
                         nav_out_obj = nav_out_action_cur[0]
+                        print nav_out_obj,"\n"
+                        print "="*20
                         end_time = nav_out_obj['last_update']
                         timespent = (end_time-visited_on).total_seconds()
                         print " Time spent: ", timespent, " seconds."

@@ -140,6 +140,7 @@ def create_discussion(request, group_id, node_id):
 @login_required
 @auto_enroll
 def discussion_reply(request, group_id, node_id):
+    print"inside discussion_reply"
     try:
         group_id = ObjectId(group_id)
     except:
@@ -187,6 +188,8 @@ def discussion_reply(request, group_id, node_id):
             reply_obj.modified_by = user_id
             reply_obj.contributors.append(user_id)
 
+            print "contributors:",reply_obj.contributors
+            
             reply_obj.member_of.append(ObjectId(reply_st._id))
             reply_obj.prior_node.append(ObjectId(prior_node))
             reply_obj.group_set.append(ObjectId(group_id))
@@ -330,6 +333,9 @@ def discussion_reply(request, group_id, node_id):
 
             # print files
             user_names = reply_obj.user_details_dict["contributors"]
+
+            print "Usernames:",user_names
+            
             is_grp_admin = False
             if request.user.id in group_object.group_admin:
                 is_grp_admin = True

@@ -37,7 +37,7 @@ class GstudioEmailRegistrationForm(EmailRegistrationForm):
     Overriding django "form fields" and "def clean()"
 
     """
-
+    print "inside GstudioEmailRegistrationForm"
     email = forms.EmailField(
         widget=forms.TextInput(attrs=dict(attrs_dict, maxlength=256)),
         label=_("Email")
